@@ -1,0 +1,20 @@
+{
+  "header": {
+    "message_id": "<20260727.184500.8421@notice-account-security.example>",
+    "sender": "Account Security <alerts@secure-payments-notice.example>",
+    "recipients": [
+      "alex.morgan@example.net"
+    ],
+    "subject": "Action required: verify your account information",
+    "sent_at": "2026-07-27T18:45:00+05:30",
+    "reply_to": "support@secure-payments-notice.example"
+  },
+  "body_text": "We detected an unusual sign-in attempt. Review your account details using the secure portal within 24 hours to avoid an interruption to service.",
+  "attachments": [
+    {
+      "filename": "Account_Verification_Notice.pdf",
+      "content_type": "application/pdf",
+      "size_bytes": 184320
+    }
+  ]
+}

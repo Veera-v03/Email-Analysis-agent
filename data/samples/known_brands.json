@@ -1,0 +1,20 @@
+{
+  "organizations": [
+    {
+      "name": "Microsoft",
+      "domains": ["microsoft.com", "office.com", "live.com"]
+    },
+    {
+      "name": "Google",
+      "domains": ["google.com", "gmail.com"]
+    },
+    {
+      "name": "PayPal",
+      "domains": ["paypal.com"]
+    },
+    {
+      "name": "Amazon",
+      "domains": ["amazon.com", "amazon.in"]
+    }
+  ]
+}
