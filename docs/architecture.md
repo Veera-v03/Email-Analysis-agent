@@ -20,6 +20,45 @@ src/
 
 ## Layer responsibilities
 
+### analyzers/url/ — Phase 4 URL Intelligence Pipeline
+
+Milestone 4.11 introduces a dedicated URL intelligence engine that composes
+all Phase 4 URL components into a single deterministic pipeline. The engine
+accepts an `EmailInput`, extracts every URL occurrence, normalizes and parses
+those URLs, runs structural feature extraction, HTML hyperlink analysis,
+Unicode analysis, shortener detection, suspicious-pattern detection, and a
+placeholder reputation provider, then emits immutable `FinalUrlIntelligence`
+objects for each URL.
+
+The composed pipeline is:
+
+```text
+EmailInput
+  ↓
+CompositeUrlExtractor
+  ↓
+CanonicalUrlNormalizer
+  ↓
+ParsedUrlComponents
+  ↓
+StructuralUrlFeatureExtractor
+  ↓
+DeterministicUrlUnicodeAnalyzer
+  ↓
+DeterministicUrlShortenerDetector
+  ↓
+StructuralUrlAnomalyAnalyzer
+  ↓
+DeterministicHyperlinkAnalyzer
+  ↓
+NullReputationProvider
+  ↓
+FinalUrlIntelligence
+```
+
+This layer remains deterministic and does not perform live network lookups,
+security scoring, or verdict generation.
+
 ### config/
 
 Reads environment variables and an optional `.env` file via `pydantic-settings`.
