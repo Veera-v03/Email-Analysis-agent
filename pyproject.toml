@@ -11,6 +11,7 @@ requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.10,<3.0",
     "pydantic-settings>=2.7,<3.0",
+    "tldextract>=5.1,<6.0",
 ]
 
 [project.optional-dependencies]
