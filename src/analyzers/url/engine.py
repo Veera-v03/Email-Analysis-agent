@@ -7,8 +7,6 @@ pipeline that accepts an ``EmailInput`` and returns immutable
 
 from __future__ import annotations
 
-from typing import Iterable
-
 from src.analyzers.url.anomalies import StructuralUrlAnomalyAnalyzer
 from src.analyzers.url.extractor import CompositeUrlExtractor
 from src.analyzers.url.features import StructuralUrlFeatureExtractor

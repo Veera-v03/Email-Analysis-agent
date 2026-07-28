@@ -74,6 +74,10 @@ _SYMBOL_RE = re.compile(r"[^A-Za-z0-9\s]")
 # A file extension: a dot followed by 1–10 word characters at end of segment.
 _EXTENSION_RE = re.compile(r"\.[A-Za-z0-9]{1,10}$")
 
+# URL analysis is deterministic and must not create or lock a user-level cache
+# while resolving the Public Suffix List.  Use tldextract's bundled snapshot.
+_PUBLIC_SUFFIX_EXTRACTOR = tldextract.TLDExtract(suffix_list_urls=(), cache_dir=None)
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -192,7 +196,7 @@ class StructuralUrlFeatureExtractor:
 
         # --- subdomain via tldextract (uses already-parsed host) -----------
         if host:
-            extracted = tldextract.extract(host)
+            extracted = _PUBLIC_SUFFIX_EXTRACTOR(host)
             subdomain_str: str | None = extracted.subdomain or None
             # Prefer the values already stored on the components if present,
             # otherwise fall back to tldextract.

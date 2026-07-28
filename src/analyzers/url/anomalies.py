@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import ipaddress
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 from src.models.url import (
     ParsedUrlComponents,

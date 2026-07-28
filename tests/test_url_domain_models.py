@@ -10,11 +10,11 @@ from src.models.url import (
     FinalUrlIntelligence,
     HtmlContext,
     ParsedUrlComponents,
+    RedirectMechanism,
     RedirectResult,
     ReputationResult,
     UrlEvidence,
     UrlExtractionSource,
-    RedirectMechanism,
 )
 
 

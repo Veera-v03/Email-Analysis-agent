@@ -20,7 +20,7 @@ class UrlReputationProvider(Protocol):
 
     name: str
 
-    def query(self, components: ParsedUrlComponents) -> "UrlReputationResult":
+    def query(self, components: ParsedUrlComponents) -> UrlReputationResult:
         """Return a deterministic provider result for the supplied components."""
 
 

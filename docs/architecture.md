@@ -1,236 +1,109 @@
 # Architecture
 
-## Overview
+## Layers and dependency direction
 
-Email Analysis Agent follows a Clean Architecture-oriented layered design.
-Each layer depends only inward. No analysis component reads environment
-variables, configures logging, or performs file-system discovery directly.
-
-```
-src/
-├── config/          Infrastructure — environment-backed settings
-├── models/          Domain contracts — immutable Pydantic data models
-├── parsers/         Parsing boundary — raw-to-model conversion contracts
-├── analyzers/       Analysis — independent, injectable intelligence components
-│   └── sender/      Phase 3 — Sender & Domain Intelligence Engine
-└── utils/           Shared operational utilities
-```
-
----
-
-## Layer responsibilities
-
-### analyzers/url/ — Phase 4 URL Intelligence Pipeline
-
-Milestone 4.11 introduces a dedicated URL intelligence engine that composes
-all Phase 4 URL components into a single deterministic pipeline. The engine
-accepts an `EmailInput`, extracts every URL occurrence, normalizes and parses
-those URLs, runs structural feature extraction, HTML hyperlink analysis,
-Unicode analysis, shortener detection, suspicious-pattern detection, and a
-placeholder reputation provider, then emits immutable `FinalUrlIntelligence`
-objects for each URL.
-
-The composed pipeline is:
+The system uses a Clean Architecture-oriented layout. `models` contains strict,
+immutable Pydantic contracts and depends only on other model modules and third
+party validation libraries. Parsers and analyzers depend on models; the Phase 5
+runtime depends only on agent abstractions, registry interfaces, and models.
+Tools adapt existing analyzers rather than reimplementing their business logic.
 
 ```text
-EmailInput
-  ↓
-CompositeUrlExtractor
-  ↓
-CanonicalUrlNormalizer
-  ↓
-ParsedUrlComponents
-  ↓
-StructuralUrlFeatureExtractor
-  ↓
-DeterministicUrlUnicodeAnalyzer
-  ↓
-DeterministicUrlShortenerDetector
-  ↓
-StructuralUrlAnomalyAnalyzer
-  ↓
-DeterministicHyperlinkAnalyzer
-  ↓
-NullReputationProvider
-  ↓
-FinalUrlIntelligence
+config / utils
+       |
+parsers, sender analyzers, URL analyzers, attachment analyzers
+       |
+AgentTool adapters -> ToolRegistry -> ToolExecutionEngine
+       |
+AgentState, ToolResult, EvidenceCollection
 ```
 
-This layer remains deterministic and does not perform live network lookups,
-security scoring, or verdict generation.
+All source modules import successfully as a set. There is no observed circular
+dependency: models do not import analyzers, and the execution engine depends on
+the registry interface rather than concrete tools.
 
-### config/
+## Phase 5 tool ecosystem
 
-Reads environment variables and an optional `.env` file via `pydantic-settings`.
-`Settings.to_application_config()` converts runtime settings into the strict
-`ApplicationConfig` model, keeping the rest of the application independent of
-the settings framework.
+`AgentTool[T]` is the common execution contract. Each tool receives an
+`AgentState`, returns a `ToolResult`, and can use `execute_with_handling()` for
+consistent conversion of recoverable exceptions to failed results.
 
-### models/
-
-All application data contracts. Every model uses `ConfigDict(extra="forbid",
-strict=True, frozen=True)` to enforce strict, immutable boundaries. No model
-imports from `analyzers/` or `utils/`.
-
-### parsers/
-
-Stable protocol contracts for the email ingestion boundary. Concrete loaders
-and MIME parsers can be introduced independently without changing consumers.
-`ParserError` is the only exception type that crosses this boundary.
-
-### analyzers/sender/ — Phase 3 Sender Intelligence Engine
-
-The engine coordinates eight independent, protocol-backed analyzers. Each
-component accepts typed models and returns typed models. None performs I/O,
-reads configuration, or makes a security verdict.
-
-### utils/
-
-Small, single-purpose operational utilities: structured logging configuration
-and JSON file loading. No domain logic.
-
----
-
-## Phase 3 pipeline
-
-```
-EmailInput  (Phase 2 contract)
-     │
-     ▼
-SenderIntelligenceEngine.analyze()
-     │
-     ├─► StructuredSenderExtractor          → SenderAnalysisResult (addresses)
-     │       └─ RfcAddressParser
-     │
-     ├─► CanonicalEmailAddressNormalizer    → NormalizedAddressEvidence (per header)
-     │
-     ├─► PublicSuffixDomainParser           → DomainParseResult (per domain)
-     │       └─ TldExtractPublicSuffixResolver
-     │
-     ├─► DeterministicDomainFeatureAnalyzer → DomainFeatureResult (per domain)
-     │
-     ├─► DeterministicDisplayNameAnalyzer   → DisplayNameAnalysisResult
-     │
-     ├─► DeterministicSenderHeaderComparator → SenderHeaderComparisonResult
-     │
-     ├─► DeterministicAuthenticationHeaderInterpreter → AuthenticationAnalysisResult
-     │
-     └─► DeterministicSenderRelationshipBuilder → SenderRelationshipGraph
-     │
-     ▼
-SenderAnalysisResult  (Phase 3 unified output contract)
-```
-
-Every stage emits structured `Evidence` records through `EvidenceCollector`.
-The final `SenderAnalysisResult` composes all stage outputs into one immutable
-model with no risk score, phishing probability, or security verdict.
-
----
-
-## Dependency direction
-
-```
-engine.py
-  → analyzer protocols (contracts)
-  → concrete analyzers (injected defaults)
-  → models (data contracts only)
-  → utils/evidence (EvidenceCollector)
-
-models/
-  → pydantic (external)
-  → stdlib only
-
-analyzers/sender/*
-  → models/
-  → stdlib + tldextract
-```
-
-No circular dependencies exist. `models/` has no upward dependencies.
-
----
-
-## Injection and testability
-
-Every Phase 3 analyzer is injectable through `SenderIntelligenceEngine.__init__`.
-All analyzers satisfy `@runtime_checkable` Protocol contracts. Tests can
-substitute any component with a minimal structural implementation without
-subclassing.
-
-```python
-engine = SenderIntelligenceEngine(
-    domain_parser=MyCustomDomainParser(),
-    authentication_interpreter=MyAuthInterpreter(),
-)
-```
-
----
-
-## Configuration flow
-
-```
-Environment / .env
-     │
-     ▼
-Settings (pydantic-settings)
-     │
-     ▼
-ApplicationConfig (frozen Pydantic model)
-     │
-     ▼
-Application components (receive config, never read env directly)
-```
-
----
-
-## Evidence model
-
-Every analyzer stage emits `Evidence` records through `EvidenceCollector`.
-Evidence has:
-
-- `evidence_id` — stable opaque SHA-256 digest
-- `evidence_type` — dot-namespaced category string
-- `title` / `description` — human-readable observation
-- `severity` — `INFO | LOW | MEDIUM | HIGH | CRITICAL` (presentation only)
-- `source` — producing component name
-- `metadata` — JSON-compatible structured context
-
-Evidence is intentionally free of risk scores, probabilities, and verdicts.
-
----
-
-## Extension approach
-
-### Adding a new Phase 3 analyzer
-
-1. Define a `@runtime_checkable` Protocol in `analyzers/sender/contracts.py`
-   or a dedicated module.
-2. Implement the concrete class in a new module under `analyzers/sender/`.
-3. Add the protocol type as an optional keyword argument to
-   `SenderIntelligenceEngine.__init__` with a concrete default.
-4. Call the analyzer inside `SenderIntelligenceEngine.analyze()` and emit
-   evidence through the existing `EvidenceCollector`.
-5. Add the output field to `SenderAnalysisResult` in `models/sender_analysis.py`.
-
-### Adding a Phase 4 orchestration layer
-
-Phase 4 should accept `SenderAnalysisResult` as its input contract. It must
-not import from `analyzers/sender/` directly — it should depend on the output
-model only. Risk scoring, verdict generation, and LLM integration belong in
-Phase 4, not in Phase 3 analyzers.
-
----
-
-## Directory responsibilities
-
-| Path | Responsibility |
+| Component | Responsibility |
 |---|---|
-| `src/analyzers/sender/` | Phase 3 sender intelligence components |
-| `src/config/` | Environment-backed application configuration |
-| `src/models/` | Immutable Pydantic data contracts |
-| `src/parsers/` | Email ingestion boundary contracts |
-| `src/utils/` | Logging and file-loading utilities |
-| `data/raw/` | Local unprocessed source material (git-ignored) |
-| `data/processed/` | Locally generated data (git-ignored) |
-| `data/samples/` | Versioned safe development fixtures |
-| `tests/` | Automated verification |
-| `docs/` | Architecture and engineering documentation |
+| `ParserTool` | Converts raw state payloads to `EmailInput`; result updates parsed email. |
+| `SenderTool` | Adapts `SenderIntelligenceEngine`. |
+| `URLTool` | Adapts `UrlIntelligenceEngine`. |
+| `AttachmentTool` | Coordinates modular attachment analyzers. |
+| `ReportTool` | Summarizes centralized canonical evidence. |
+| `ToolRegistry` | Registers and retrieves uniquely named tools. |
+| `ToolExecutionEngine` | Resolves and executes tools in caller-provided order. |
+
+## State, evidence, and execution flow
+
+`AgentState` is the immutable single source of truth for parsed email, named
+tool results, legacy compatibility evidence, canonical `EvidenceCollection`,
+execution history, errors, and future planning placeholders. `with_tool_result`
+is the one state transition used by the runtime.
+
+```text
+state + requested names/instances
+  -> registry lookup (for names)
+  -> execute_with_handling(current state)
+  -> ToolResult
+  -> AgentState.with_tool_result(...)
+  -> next tool receives updated state
+  -> ExecutionResult(final state, ordered results, summary)
+```
+
+Execution is sequential and deterministic. `ExecutionOptions.continue_on_failure`
+defaults to `True`; a failed result is recorded and later tools continue. A
+missing registry name becomes a recorded failed result. The engine neither
+selects tools nor interprets evidence.
+
+## Evidence framework
+
+`Evidence` is the canonical serializable observation model. It provides an
+identifier, type/category, title, description, severity, source, optional
+confidence and recommendation, metadata, and timestamp. `EvidenceCollection`
+is immutable and supports serialization and filtering. `EvidenceBuilder`
+constructs records; `EvidenceAggregator` converts legacy `ToolEvidence`,
+deduplicates records, and orders them by severity.
+
+`ToolResult.evidence_collection` and `AgentState.evidence` are canonical.
+`ToolEvidence` and `AgentState.accumulated_evidence` remain only for backwards
+compatibility with earlier Phase 5 consumers.
+
+## Attachment intelligence
+
+`AttachmentTool` composes independent analyzers for metadata, signatures,
+filename anomalies, entropy, hashing, archive contents, Office macros, PDFs,
+and executables. It accepts attachment payloads from state metadata or email
+attachment metadata, with an injectable deterministic reputation provider.
+
+## Public extension points
+
+- `AgentTool` for a new state-based capability.
+- `IToolRegistry` for a registry implementation with different storage policy.
+- `ExecutionOptions` for caller-owned deterministic execution policy.
+- Attachment analyzer and reputation protocols for additional attachment checks.
+- Existing sender and URL analyzer protocols for deeper domain capabilities.
+
+## Public API reference
+
+| API | Purpose |
+|---|---|
+| `AgentState.create()` | Creates the immutable workflow state. |
+| `AgentState.with_tool_result()` | Applies a result, evidence, error, history record, and parsed-email output. |
+| `ToolMetadata` | Stable identity and capabilities advertised by a tool. |
+| `ToolResult` | Status, metadata, compatibility evidence, canonical evidence, duration, error, and optional parsed email. |
+| `Evidence` / `EvidenceCollection` | Serializable canonical observations and their immutable collection. |
+| `ToolRegistry.register()` / `get()` | Manages named tool discovery. |
+| `ToolExecutionEngine.execute()` | Executes ordered names or instances and returns `ExecutionResult`. |
+| `ExecutionResult` / `ExecutionSummary` | Final state plus ordered results and execution metrics. |
+
+Public agent APIs are exported from `src.analyzers.agent`; core contracts are
+also available from `src.models` where applicable.
+
+Phase 6 can add a planner above the engine: it should produce an ordered tool
+request and consume `ExecutionResult`, without changing current tools or state
+transitions.
