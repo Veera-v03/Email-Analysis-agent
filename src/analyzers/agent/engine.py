@@ -93,7 +93,9 @@ class ToolExecutionEngine:
                     int((time.perf_counter_ns() - tool_started_ns) / 1_000_000),
                 )
                 result = result.model_copy(
-                    update={"execution_time_ms": max(result.execution_time_ms, observed_ms)}
+                    update={
+                        "execution_time_ms": max(result.execution_time_ms, observed_ms)
+                    }
                 )
 
             details = (
@@ -103,7 +105,10 @@ class ToolExecutionEngine:
             )
             current_state = current_state.with_tool_result(result, details)
             results.append(result)
-            if result.status is ToolExecutionStatus.FAILED and not execution_options.continue_on_failure:
+            if (
+                result.status is ToolExecutionStatus.FAILED
+                and not execution_options.continue_on_failure
+            ):
                 stopped_early = True
                 break
 
@@ -111,17 +116,22 @@ class ToolExecutionEngine:
         summary = self._summary(
             requested_count=len(resolved),
             results=tuple(results),
-            evidence_count=len(current_state.evidence.items) - len(state.evidence.items),
+            evidence_count=len(current_state.evidence.items)
+            - len(state.evidence.items),
             elapsed_ms=elapsed_ms,
             stopped_early=stopped_early,
         )
-        return ExecutionResult(state=current_state, results=tuple(results), summary=summary)
+        return ExecutionResult(
+            state=current_state, results=tuple(results), summary=summary
+        )
 
     def _resolve_tools(
         self,
         tools: Sequence[ToolReference] | None,
     ) -> list[tuple[str, AgentTool[Any] | None]]:
-        references: Sequence[ToolReference] = tools if tools is not None else self._registry.list_tools()
+        references: Sequence[ToolReference] = (
+            tools if tools is not None else self._registry.list_tools()
+        )
         resolved: list[tuple[str, AgentTool[Any] | None]] = []
         for reference in references:
             if isinstance(reference, str):
@@ -132,7 +142,9 @@ class ToolExecutionEngine:
             elif isinstance(reference, AgentTool):
                 resolved.append((reference.metadata.name, reference))
             else:
-                raise TypeError("Tool references must be registered names or AgentTool instances.")
+                raise TypeError(
+                    "Tool references must be registered names or AgentTool instances."
+                )
         return resolved
 
     @staticmethod
@@ -168,9 +180,15 @@ class ToolExecutionEngine:
         return ExecutionSummary(
             requested_tool_count=requested_count,
             executed_tool_count=len(results),
-            completed_count=sum(item.status is ToolExecutionStatus.COMPLETED for item in results),
-            failed_count=sum(item.status is ToolExecutionStatus.FAILED for item in results),
-            skipped_count=sum(item.status is ToolExecutionStatus.SKIPPED for item in results),
+            completed_count=sum(
+                item.status is ToolExecutionStatus.COMPLETED for item in results
+            ),
+            failed_count=sum(
+                item.status is ToolExecutionStatus.FAILED for item in results
+            ),
+            skipped_count=sum(
+                item.status is ToolExecutionStatus.SKIPPED for item in results
+            ),
             evidence_count=evidence_count,
             execution_time_ms=elapsed_ms,
             stopped_early=stopped_early,

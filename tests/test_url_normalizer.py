@@ -412,7 +412,7 @@ def test_nfc_normalization_applied_to_path() -> None:
     """A path with decomposed Unicode characters is NFC-normalized."""
     # 'é' as decomposed (e + combining acute accent) vs precomposed
     decomposed = "e\u0301"  # e + combining acute
-    precomposed = "\xe9"    # é precomposed
+    precomposed = "\xe9"  # é precomposed
     raw = f"https://example.com/{decomposed}/page"
     result = _norm(raw)
 

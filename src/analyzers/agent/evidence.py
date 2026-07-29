@@ -157,11 +157,15 @@ class EvidenceAggregator:
                     if isinstance(sub, Evidence):
                         flat_list.append(sub)
                     elif isinstance(sub, ToolEvidence):
-                        flat_list.append(cls.from_tool_evidence(sub, source_tool=default_source))
+                        flat_list.append(
+                            cls.from_tool_evidence(sub, source_tool=default_source)
+                        )
             elif isinstance(item, Evidence):
                 flat_list.append(item)
             elif isinstance(item, ToolEvidence):
-                flat_list.append(cls.from_tool_evidence(item, source_tool=default_source))
+                flat_list.append(
+                    cls.from_tool_evidence(item, source_tool=default_source)
+                )
 
         # Deduplicate based on (source, category, title, description)
         seen: set[tuple[str, str, str, str]] = set()

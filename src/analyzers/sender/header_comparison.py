@@ -203,9 +203,7 @@ class DeterministicSenderHeaderComparator:
         if reply_to_addresses and not from_addresses:
             combinations.append(UnexpectedHeaderCombination.REPLY_TO_WITHOUT_FROM)
         if return_path_addresses and not from_addresses:
-            combinations.append(
-                UnexpectedHeaderCombination.RETURN_PATH_WITHOUT_FROM
-            )
+            combinations.append(UnexpectedHeaderCombination.RETURN_PATH_WITHOUT_FROM)
         if len(from_addresses) > 1 and not sender_addresses:
             combinations.append(
                 UnexpectedHeaderCombination.MULTIPLE_FROM_WITHOUT_SENDER
@@ -213,7 +211,5 @@ class DeterministicSenderHeaderComparator:
         if len(sender_addresses) > 1:
             combinations.append(UnexpectedHeaderCombination.MULTIPLE_SENDER_VALUES)
         if len(return_path_addresses) > 1:
-            combinations.append(
-                UnexpectedHeaderCombination.MULTIPLE_RETURN_PATH_VALUES
-            )
+            combinations.append(UnexpectedHeaderCombination.MULTIPLE_RETURN_PATH_VALUES)
         return tuple(combinations)

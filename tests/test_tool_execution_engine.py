@@ -166,4 +166,6 @@ def test_engine_accepts_tool_instances_without_registry_registration() -> None:
     )
 
     assert outcome.summary.tool_order == ("embedded",)
-    assert outcome.state.tool_results["embedded"].status is ToolExecutionStatus.COMPLETED
+    assert (
+        outcome.state.tool_results["embedded"].status is ToolExecutionStatus.COMPLETED
+    )

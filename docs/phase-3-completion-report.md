@@ -130,10 +130,12 @@ Structural subtyping is used throughout — no inheritance required.
 ```python
 from src.analyzers.sender.header_sources import MappingHeaderProvider
 
-headers = MappingHeaderProvider({
-    "From": "Alice <alice@example.com>",
-    "Reply-To": "help@example.com",
-})
+headers = MappingHeaderProvider(
+    {
+        "From": "Alice <alice@example.com>",
+        "Reply-To": "help@example.com",
+    }
+)
 ```
 
 ---

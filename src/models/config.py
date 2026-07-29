@@ -18,3 +18,11 @@ class ApplicationConfig(BaseModel):
     debug: StrictBool
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
     data_directory: Path
+    planner_enabled: StrictBool
+    planner_provider: StrictStr
+    planner_model: StrictStr
+    planner_temperature: float
+    planner_max_tokens: int
+    planner_timeout: float
+    planner_retry_count: int
+    planner_retry_delay: float

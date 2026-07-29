@@ -65,14 +65,22 @@ class URLTool(AgentTool[AgentState]):
 
             # Convert url evidence items
             for ev in item.evidence:
-                built_ev = EvidenceBuilder.create()\
-                    .with_source(self.metadata.name)\
-                    .with_category(f"url_{ev.source}")\
-                    .with_severity(EvidenceSeverity.MEDIUM if item.suspicious_patterns else EvidenceSeverity.INFO)\
-                    .with_title(f"URL Observation ({ev.source})")\
-                    .with_description(f"Observed URL characteristic: {ev.detail}")\
-                    .with_metadata({"url": item.extracted.raw_value, "source": ev.source})\
+                built_ev = (
+                    EvidenceBuilder.create()
+                    .with_source(self.metadata.name)
+                    .with_category(f"url_{ev.source}")
+                    .with_severity(
+                        EvidenceSeverity.MEDIUM
+                        if item.suspicious_patterns
+                        else EvidenceSeverity.INFO
+                    )
+                    .with_title(f"URL Observation ({ev.source})")
+                    .with_description(f"Observed URL characteristic: {ev.detail}")
+                    .with_metadata(
+                        {"url": item.extracted.raw_value, "source": ev.source}
+                    )
                     .build()
+                )
 
                 tool_evidence.append(
                     ToolEvidence(
@@ -83,18 +91,26 @@ class URLTool(AgentTool[AgentState]):
                 )
 
         # Summary evidence
-        summary_ev = EvidenceBuilder.create()\
-            .with_source(self.metadata.name)\
-            .with_category("url_analysis")\
-            .with_severity(EvidenceSeverity.HIGH if anomaly_count > 0 else EvidenceSeverity.INFO)\
-            .with_title("URL Intelligence Processing Completed")\
-            .with_description(f"Analyzed {len(url_results)} extracted URLs for security signals.")\
-            .with_metadata({
-                "total_urls_extracted": len(url_results),
-                "shortened_url_count": shortened_count,
-                "anomaly_count": anomaly_count,
-            })\
+        summary_ev = (
+            EvidenceBuilder.create()
+            .with_source(self.metadata.name)
+            .with_category("url_analysis")
+            .with_severity(
+                EvidenceSeverity.HIGH if anomaly_count > 0 else EvidenceSeverity.INFO
+            )
+            .with_title("URL Intelligence Processing Completed")
+            .with_description(
+                f"Analyzed {len(url_results)} extracted URLs for security signals."
+            )
+            .with_metadata(
+                {
+                    "total_urls_extracted": len(url_results),
+                    "shortened_url_count": shortened_count,
+                    "anomaly_count": anomaly_count,
+                }
+            )
             .build()
+        )
 
         tool_evidence.append(
             ToolEvidence(

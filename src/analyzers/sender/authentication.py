@@ -101,9 +101,9 @@ class DeterministicAuthenticationHeaderInterpreter:
         header_values: tuple[str, ...],
     ) -> dict[AuthenticationMechanism, list[AuthenticationObservation]]:
         """Extract mechanism status claims from Authentication-Results headers."""
-        observations: dict[AuthenticationMechanism, list[AuthenticationObservation]] = (
-            {mechanism: [] for mechanism in AuthenticationMechanism}
-        )
+        observations: dict[AuthenticationMechanism, list[AuthenticationObservation]] = {
+            mechanism: [] for mechanism in AuthenticationMechanism
+        }
         for header_value in header_values:
             for match in STATUS_PATTERN.finditer(header_value):
                 mechanism = AuthenticationMechanism(match.group("mechanism").casefold())

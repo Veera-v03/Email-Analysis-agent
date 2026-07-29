@@ -14,80 +14,84 @@ Requires-Dist: ruff>=0.9; extra == "dev"
 
 # Email Analysis Agent
 
-Email Analysis Agent is the future email-security microservice for ScamShield AI.
-This repository currently contains **Phase 1: Project Foundation** only. It
-provides a typed configuration system, strict data contracts, structured
-logging, sample-data loading, and a verified application bootstrap.
+Email Analysis Agent is a deterministic, typed email-analysis platform. Phase 5
+is complete: existing parser, sender, URL, and attachment capabilities are
+available as reusable agent tools, coordinated by a framework-agnostic runtime.
+No LLM planner, scoring engine, or external intelligence API is included.
 
-No phishing detection, spoofing detection, typosquatting, entity extraction,
-LLM integration, or risk scoring is implemented in this phase.
+## Implemented architecture
 
-## Goals
+- **Foundation and parsing:** configuration, immutable email contracts, and
+  parser boundary protocols.
+- **Sender intelligence:** header, authentication, address, domain, and display
+  name observations through `SenderIntelligenceEngine`.
+- **URL intelligence:** extraction, normalization, structural analysis,
+  hyperlink comparison, Unicode, shortener, and anomaly observations.
+- **Attachment intelligence:** metadata, signature, entropy, hash, archive,
+  Office, PDF, executable, and deterministic reputation adapters.
+- **Agent ecosystem:** `AgentState`, `AgentTool`, `ToolRegistry`, canonical
+  `Evidence`, and `ToolExecutionEngine`.
 
-- Establish a maintainable Clean Architecture-oriented codebase.
-- Define strict, reusable contracts at the application boundary.
-- Keep configuration and operational concerns outside future analysis logic.
-- Make subsequent capabilities easy to test and integrate safely.
-
-## Project structure
+## Agent lifecycle
 
 ```text
-Email-Analysis-Agent/
-├── src/
-│   ├── analyzers/       # Reserved boundary for future analysis components
-│   ├── config/          # Environment-backed application configuration
-│   ├── models/          # Strict Pydantic data contracts
-│   ├── utils/           # Shared logging and file-loading utilities
-│   └── main.py          # Application bootstrap
-├── data/
-│   ├── raw/             # Local source data, excluded from version control
-│   ├── processed/       # Derived local data, excluded from version control
-│   └── samples/         # Versioned, safe development fixtures
-├── tests/               # Automated foundation checks
-├── docs/                # Architecture and engineering documentation
-├── .env.example         # Safe environment-variable template
-├── requirements.txt     # Runtime dependencies
-└── pyproject.toml       # Package and tool configuration
+AgentState
+  -> ToolExecutionEngine
+  -> ToolRegistry resolves requested AgentTools
+  -> tools execute sequentially against the latest immutable state
+  -> ToolResult records evidence, errors, and optional parsed email
+  -> AgentState records result, canonical evidence, and execution history
+  -> ExecutionResult returns final state and ExecutionSummary
 ```
 
-## Installation
+The supplied tools are `ParserTool`, `SenderTool`, `URLTool`,
+`AttachmentTool`, and `ReportTool`. The engine is deliberately deterministic:
+the caller supplies the order and failure policy.
 
-Python 3.13 or later is required.
+## Minimal usage
+
+```python
+from src.analyzers.agent import ParserTool, ToolExecutionEngine, ToolRegistry, URLTool
+from src.models.agent import AgentState
+
+registry = ToolRegistry()
+registry.register(ParserTool())
+registry.register(URLTool())
+
+state = AgentState.create(metadata={"raw_email": raw_email_payload})
+result = ToolExecutionEngine(registry).execute(
+    state,
+    tools=["parser_tool", "url_tool"],
+)
+
+print(result.summary.tool_order)
+print(result.state.evidence.to_json())
+```
+
+## Project layout
+
+```text
+src/models/              immutable domain and agent contracts
+src/parsers/             email ingestion boundary contracts
+src/analyzers/sender/    sender intelligence pipeline
+src/analyzers/url/       URL intelligence pipeline
+src/analyzers/agent/     tools, attachments, registry, evidence, runtime
+src/utils/               operational and evidence utilities
+tests/                   unit, integration, and regression coverage
+docs/                    architecture, development, and phase reports
+```
+
+## Development
+
+Python 3.13+ is required.
 
 ```bash
-python -m venv .venv
-.venv\\Scripts\\activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -e ".[dev]"
+python -m pytest
+python -m ruff check .
+python -m mypy src
 ```
 
-Optionally copy `.env.example` to `.env` and adjust non-secret runtime values.
-Never commit `.env` or API keys.
-
-## Running
-
-From the repository root:
-
-```bash
-python -m src.main
-```
-
-The program loads configuration, initializes logging, reads the versioned
-sample email, validates it against the Pydantic contract, logs a concise
-summary, and exits successfully.
-
-## Development status
-
-Phase 1 is the active scope. It intentionally stops at application bootstrap
-and validated input representation.
-
-## Roadmap summary
-
-1. **Foundation (current):** configuration, models, utilities, bootstrap, and documentation.
-2. Sender and message normalization.
-3. Independent security-analysis capabilities.
-4. Orchestration, structured results, and service integration.
-5. Observability, hardening, and deployment operations.
-
-See [Architecture](docs/architecture.md) and
-[Development guide](docs/development.md) for engineering details.
+See [architecture](docs/architecture.md), [development guide](docs/development.md),
+[tool development guide](docs/tool-development-guide.md), and the
+[Phase 5 completion report](docs/phase-5-completion-report.md).

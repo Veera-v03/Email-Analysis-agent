@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import pytest
 from pydantic import ValidationError
 
@@ -28,16 +27,18 @@ def test_evidence_model_defaults_and_immutability() -> None:
 
 
 def test_evidence_json_and_dict_serialization() -> None:
-    ev = EvidenceBuilder.create()\
-        .with_source("sender_tool")\
-        .with_category("authentication")\
-        .with_severity(EvidenceSeverity.CRITICAL)\
-        .with_confidence(0.99)\
-        .with_title("SPF Spoofing")\
-        .with_description("SPF record failed for sending domain")\
-        .with_recommendation("Block email sender domain")\
-        .with_metadata({"domain": "phish.example"})\
+    ev = (
+        EvidenceBuilder.create()
+        .with_source("sender_tool")
+        .with_category("authentication")
+        .with_severity(EvidenceSeverity.CRITICAL)
+        .with_confidence(0.99)
+        .with_title("SPF Spoofing")
+        .with_description("SPF record failed for sending domain")
+        .with_recommendation("Block email sender domain")
+        .with_metadata({"domain": "phish.example"})
         .build()
+    )
 
     dict_data = ev.to_dict()
     assert dict_data["source"] == "sender_tool"

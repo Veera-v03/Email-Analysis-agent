@@ -1,0 +1,94 @@
+Please generate an execution plan to analyze the following email.
+
+EMAIL METADATA & CONTENT:
+- Message ID: {email_id}
+- Subject: {email_subject}
+- Sender: {email_sender}
+
+BODY SUMMARY:
+{email_body_summary}
+
+CURRENT EXECUTION STATE:
+- Execution History: {execution_history}
+- Accumulated Evidence: {accumulated_evidence}
+
+PLANNING RULES & EXPECTED STRATEGIES:
+- If there are NO URLs in the body summary: you MUST NOT schedule url_tool.
+- If there are NO attachments: you MUST NOT schedule attachment_tool.
+- If the sender is an internal trusted sender (e.g. within company domain) and no links exist: select the 'minimal' strategy.
+- If sender is unknown: prioritize sender_tool (e.g. execute first, priority=1).
+- If ZIP or executable attachment is present: schedule attachment_tool with high priority (priority=1 or 2) and select 'comprehensive' strategy.
+- If multiple URLs exist: prioritize url_tool and select 'comprehensive' strategy.
+
+FEW-SHOT EXAMPLES:
+
+Example 1: Newsletter (No URLs, no attachments)
+Response:
+{{
+  "goal": "Verify safety of trusted newsletter",
+  "strategy": "minimal",
+  "steps": [
+    {{
+      "step_id": "sender_check",
+      "tool": "sender_tool",
+      "priority": 1,
+      "reason": "Verify sender matches expected newsletter domain",
+      "dependencies": [],
+      "conditions": ["always_true"],
+      "expected_output": "sender authentication status",
+      "timeout": 30,
+      "estimated_cost": 0.001,
+      "estimated_value": 0.5
+    }}
+  ],
+  "confidence": 0.99
+}}
+
+Example 2: Unknown sender with zip attachment and suspicious URL
+Response:
+{{
+  "goal": "Conduct a thorough analysis of suspicious zip file and URL from unknown sender",
+  "strategy": "comprehensive",
+  "steps": [
+    {{
+      "step_id": "sender_check",
+      "tool": "sender_tool",
+      "priority": 1,
+      "reason": "Verify sender relationships and headers",
+      "dependencies": [],
+      "conditions": ["always_true"],
+      "expected_output": "sender authenticity details",
+      "timeout": 30,
+      "estimated_cost": 0.001,
+      "estimated_value": 0.7
+    }},
+    {{
+      "step_id": "url_scan",
+      "tool": "url_tool",
+      "priority": 2,
+      "reason": "Scan URL links for phishing anomalies",
+      "dependencies": ["sender_check"],
+      "conditions": ["has_urls"],
+      "expected_output": "reputation of extracted URLs",
+      "timeout": 30,
+      "estimated_cost": 0.001,
+      "estimated_value": 0.8
+    }},
+    {{
+      "step_id": "attachment_scan",
+      "tool": "attachment_tool",
+      "priority": 3,
+      "reason": "Analyze suspicious ZIP file attachment",
+      "dependencies": ["sender_check"],
+      "conditions": ["has_attachments"],
+      "expected_output": "attachment file metadata and signature analysis",
+      "timeout": 45,
+      "estimated_cost": 0.002,
+      "estimated_value": 0.95
+    }}
+  ],
+  "confidence": 0.94
+}}
+
+Validate and output only the clean JSON structure.
+Plan:

@@ -116,7 +116,8 @@ class EvidenceCollection(BaseModel):
     def filter_by_category(self, category: str) -> tuple[Evidence, ...]:
         """Filter evidence items matching a category or evidence_type."""
         return tuple(
-            ev for ev in self.items
+            ev
+            for ev in self.items
             if ev.category == category or ev.evidence_type == category
         )
 
@@ -137,4 +138,3 @@ class EvidenceCollection(BaseModel):
     def from_json(cls, json_str: str) -> EvidenceCollection:
         """Parse an EvidenceCollection instance from a JSON string."""
         return cls.model_validate_json(json_str)
-

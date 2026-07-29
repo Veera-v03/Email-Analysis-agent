@@ -52,6 +52,7 @@ def _address(email: str, display_name: str | None = None) -> ParsedEmailAddress:
 
 def _authentication_result() -> AuthenticationAnalysisResult:
     """Create a complete normalized authentication fixture."""
+
     def mechanism_result(
         mechanism: AuthenticationMechanism,
     ) -> AuthenticationMechanismResult:

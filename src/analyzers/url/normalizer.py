@@ -42,10 +42,7 @@ _DEFAULT_PORTS: dict[str, int] = {
 
 # RFC 3986 §2.3 unreserved characters — safe to decode from percent-encoding.
 _UNRESERVED = frozenset(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "-._~"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
 )
 
 # Characters that must remain percent-encoded in the path (RFC 3986 §3.3).
@@ -55,9 +52,9 @@ _PATH_SAFE = (
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789"
-    "-._~"          # unreserved
-    ":@!$&'()*+,;=" # sub-delimiters + pchar extras
-    "/"             # path separator
+    "-._~"  # unreserved
+    ":@!$&'()*+,;="  # sub-delimiters + pchar extras
+    "/"  # path separator
 )
 
 _QUERY_SAFE = _PATH_SAFE + "?"
@@ -84,9 +81,7 @@ def _normalize_percent_encoding(value: str, safe: str) -> tuple[str, bool]:
 
 def _resolve_dot_segments(path: str) -> tuple[str, bool]:
     """Resolve '.' and '..' segments in a URL path (RFC 3986 §5.2.4)."""
-    if "/./" not in path and "/../" not in path and not path.endswith(
-        ("/.", "/..")
-    ):
+    if "/./" not in path and "/../" not in path and not path.endswith(("/.", "/..")):
         return path, False
 
     segments = path.split("/")

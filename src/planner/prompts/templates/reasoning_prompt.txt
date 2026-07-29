@@ -1,0 +1,11 @@
+Analyze the accumulated evidence and provide a final verdict on the email.
+
+EMAIL SUMMARY:
+- Sender: {email_sender}
+- Subject: {email_subject}
+
+ACCUMULATED EVIDENCE:
+{accumulated_evidence}
+
+Provide your detailed reasoning and reasoning confidence:
+Reasoning:

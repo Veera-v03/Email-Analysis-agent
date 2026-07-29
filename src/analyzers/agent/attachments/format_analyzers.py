@@ -10,7 +10,18 @@ from src.analyzers.agent.attachments.models import AttachmentPayload
 from src.models.agent import ToolEvidence
 
 DANGEROUS_ARCHIVE_ENTRIES: set[str] = {
-    "exe", "bat", "cmd", "ps1", "vbs", "js", "scr", "hta", "cpl", "jar", "iso", "dll",
+    "exe",
+    "bat",
+    "cmd",
+    "ps1",
+    "vbs",
+    "js",
+    "scr",
+    "hta",
+    "cpl",
+    "jar",
+    "iso",
+    "dll",
 }
 
 PDF_SUSPICIOUS_KEYWORDS: tuple[tuple[bytes, str, str], ...] = (
@@ -77,7 +88,11 @@ class ArchiveFormatAnalyzer(IAttachmentAnalyzer):
 
                     # Inspect entry extensions
                     for info in info_list:
-                        entry_ext = info.filename.split(".")[-1].lower() if "." in info.filename else ""
+                        entry_ext = (
+                            info.filename.split(".")[-1].lower()
+                            if "." in info.filename
+                            else ""
+                        )
                         if entry_ext in DANGEROUS_ARCHIVE_ENTRIES:
                             evidence.append(
                                 ToolEvidence(
@@ -98,7 +113,10 @@ class ArchiveFormatAnalyzer(IAttachmentAnalyzer):
                     # Zip bomb indicator (compression ratio > 100x)
                     uncompressed_total = sum(info.file_size for info in info_list)
                     compressed_total = len(content)
-                    if compressed_total > 0 and uncompressed_total / compressed_total > 100:
+                    if (
+                        compressed_total > 0
+                        and uncompressed_total / compressed_total > 100
+                    ):
                         evidence.append(
                             ToolEvidence(
                                 category="attachment_archive",
@@ -109,7 +127,9 @@ class ArchiveFormatAnalyzer(IAttachmentAnalyzer):
                                 metadata={
                                     "severity": "critical",
                                     "confidence": 0.9,
-                                    "compression_ratio": round(uncompressed_total / compressed_total, 2),
+                                    "compression_ratio": round(
+                                        uncompressed_total / compressed_total, 2
+                                    ),
                                 },
                             )
                         )
@@ -122,7 +142,9 @@ class ArchiveFormatAnalyzer(IAttachmentAnalyzer):
                     )
                 )
 
-        elif content.startswith(b"Rar!\x1a\x07") or content.startswith(b"7z\xbc\xaf\x27\x1c"):
+        elif content.startswith(b"Rar!\x1a\x07") or content.startswith(
+            b"7z\xbc\xaf\x27\x1c"
+        ):
             archive_type = "RAR" if content.startswith(b"Rar!") else "7-Zip"
             evidence.append(
                 ToolEvidence(
@@ -152,10 +174,21 @@ class OfficeDocumentAnalyzer(IAttachmentAnalyzer):
         if not content:
             return evidence
 
-        is_ole = content.startswith(b"\xd0\xcf\11\xe0\xa1\xb1\1a\xe1") or content.startswith(b"\xd0\xcf\x11\xe0")
-        is_ooxml = content.startswith(b"PK\x03\x04") and ext in ("docx", "docm", "xlsx", "xlsm", "pptx", "pptm")
+        is_ole = content.startswith(
+            b"\xd0\xcf\11\xe0\xa1\xb1\1a\xe1"
+        ) or content.startswith(b"\xd0\xcf\x11\xe0")
+        is_ooxml = content.startswith(b"PK\x03\x04") and ext in (
+            "docx",
+            "docm",
+            "xlsx",
+            "xlsm",
+            "pptx",
+            "pptm",
+        )
 
-        if not (is_ole or is_ooxml or ext in ("doc", "xls", "ppt", "docm", "xlsm", "pptm")):
+        if not (
+            is_ole or is_ooxml or ext in ("doc", "xls", "ppt", "docm", "xlsm", "pptm")
+        ):
             return evidence
 
         has_macros = any(kw in content for kw in OFFICE_MACRO_KEYWORDS)
@@ -218,7 +251,11 @@ class PdfFormatAnalyzer(IAttachmentAnalyzer):
 
         for kw_bytes, category_tag, desc in PDF_SUSPICIOUS_KEYWORDS:
             if kw_bytes in content:
-                severity = "high" if category_tag in ("javascript_code", "file_launch", "auto_action") else "medium"
+                severity = (
+                    "high"
+                    if category_tag in ("javascript_code", "file_launch", "auto_action")
+                    else "medium"
+                )
                 evidence.append(
                     ToolEvidence(
                         category="attachment_pdf",
@@ -249,15 +286,22 @@ class ExecutableFormatAnalyzer(IAttachmentAnalyzer):
 
         is_pe = content.startswith(b"MZ")
         is_elf = content.startswith(b"\x7fELF")
-        is_macho = content.startswith(b"\xfe\xed\xfa") or content.startswith(b"\xce\xfa\xed\xfe") or content.startswith(b"\xcf\xfa\xed\xfe")
+        is_macho = (
+            content.startswith(b"\xfe\xed\xfa")
+            or content.startswith(b"\xce\xfa\xed\xfe")
+            or content.startswith(b"\xcf\xfa\xed\xfe")
+        )
         is_shebang = content.startswith(b"#!")
 
         if is_pe or is_elf or is_macho or is_shebang:
             binary_type = (
-                "Windows PE Executable" if is_pe else
-                "Linux ELF Executable" if is_elf else
-                "macOS Mach-O Binary" if is_macho else
-                "Executable Script (#!)"
+                "Windows PE Executable"
+                if is_pe
+                else "Linux ELF Executable"
+                if is_elf
+                else "macOS Mach-O Binary"
+                if is_macho
+                else "Executable Script (#!)"
             )
             evidence.append(
                 ToolEvidence(

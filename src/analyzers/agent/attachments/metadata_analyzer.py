@@ -66,7 +66,9 @@ class AttachmentMetadataAnalyzer(IAttachmentAnalyzer):
             )
 
         # 3. Size validation
-        actual_size = len(attachment.content) if attachment.content else attachment.size_bytes
+        actual_size = (
+            len(attachment.content) if attachment.content else attachment.size_bytes
+        )
         if actual_size == 0:
             evidence.append(
                 ToolEvidence(

@@ -110,9 +110,7 @@ class PublicSuffixDomainParser:
                 is_idn=is_idn,
             )
 
-        root_domain = (
-            f"{components.second_level_domain}{DOT_SEPARATOR}{components.tld}"
-        )
+        root_domain = f"{components.second_level_domain}{DOT_SEPARATOR}{components.tld}"
         return DomainParseResult(
             raw_value=raw_value,
             normalized_domain=normalized_domain,
@@ -171,8 +169,7 @@ class PublicSuffixDomainParser:
                 or label.startswith(HYPHEN)
                 or label.endswith(HYPHEN)
                 or not all(
-                    (character.isascii() and character.isalnum())
-                    or character == HYPHEN
+                    (character.isascii() and character.isalnum()) or character == HYPHEN
                     for character in label
                 )
             ):

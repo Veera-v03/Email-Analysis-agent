@@ -35,43 +35,57 @@ class ReportTool(AgentTool[AgentState]):
         start_ns = time.perf_counter_ns()
 
         # Aggregate and deduplicate all evidence using EvidenceAggregator
-        evidence_collection = EvidenceAggregator.aggregate(list(input_data.evidence.items))
+        evidence_collection = EvidenceAggregator.aggregate(
+            list(input_data.evidence.items)
+        )
 
-        critical_count = len(evidence_collection.filter_by_severity(EvidenceSeverity.CRITICAL))
+        critical_count = len(
+            evidence_collection.filter_by_severity(EvidenceSeverity.CRITICAL)
+        )
         high_count = len(evidence_collection.filter_by_severity(EvidenceSeverity.HIGH))
-        medium_count = len(evidence_collection.filter_by_severity(EvidenceSeverity.MEDIUM))
+        medium_count = len(
+            evidence_collection.filter_by_severity(EvidenceSeverity.MEDIUM)
+        )
         low_count = len(evidence_collection.filter_by_severity(EvidenceSeverity.LOW))
         info_count = len(evidence_collection.filter_by_severity(EvidenceSeverity.INFO))
 
         highest_severity = (
-            EvidenceSeverity.CRITICAL if critical_count > 0 else
-            EvidenceSeverity.HIGH if high_count > 0 else
-            EvidenceSeverity.MEDIUM if medium_count > 0 else
-            EvidenceSeverity.LOW if low_count > 0 else
-            EvidenceSeverity.INFO
+            EvidenceSeverity.CRITICAL
+            if critical_count > 0
+            else EvidenceSeverity.HIGH
+            if high_count > 0
+            else EvidenceSeverity.MEDIUM
+            if medium_count > 0
+            else EvidenceSeverity.LOW
+            if low_count > 0
+            else EvidenceSeverity.INFO
         )
 
-        report_ev = EvidenceBuilder.create()\
-            .with_source(self.metadata.name)\
-            .with_category("diagnostic_report")\
-            .with_severity(highest_severity)\
-            .with_title("Consolidated Analysis Diagnostic Report")\
+        report_ev = (
+            EvidenceBuilder.create()
+            .with_source(self.metadata.name)
+            .with_category("diagnostic_report")
+            .with_severity(highest_severity)
+            .with_title("Consolidated Analysis Diagnostic Report")
             .with_description(
                 f"Completed analysis across {len(input_data.tool_results)} tools. "
                 f"Generated {len(evidence_collection.items)} unique evidence items "
                 f"(Highest severity: {highest_severity.value.upper()})."
-            )\
-            .with_metadata({
-                "tools_executed": list(input_data.tool_results.keys()),
-                "total_evidence_count": len(evidence_collection.items),
-                "critical_count": critical_count,
-                "high_count": high_count,
-                "medium_count": medium_count,
-                "low_count": low_count,
-                "info_count": info_count,
-                "highest_severity": highest_severity.value,
-            })\
+            )
+            .with_metadata(
+                {
+                    "tools_executed": list(input_data.tool_results.keys()),
+                    "total_evidence_count": len(evidence_collection.items),
+                    "critical_count": critical_count,
+                    "high_count": high_count,
+                    "medium_count": medium_count,
+                    "low_count": low_count,
+                    "info_count": info_count,
+                    "highest_severity": highest_severity.value,
+                }
+            )
             .build()
+        )
 
         tool_ev = ToolEvidence(
             category=report_ev.category,

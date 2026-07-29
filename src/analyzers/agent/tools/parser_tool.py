@@ -38,14 +38,18 @@ class ParserTool(AgentTool[AgentState]):
 
         if input_data.parsed_email is not None:
             elapsed_ms = max(0, int((time.perf_counter_ns() - start_ns) / 1_000_000))
-            ev = EvidenceBuilder.create()\
-                .with_source(self.metadata.name)\
-                .with_category("parser")\
-                .with_severity(EvidenceSeverity.INFO)\
-                .with_title("Email Already Parsed")\
-                .with_description("Parsed email contract already exists in state.")\
-                .with_metadata({"message_id": input_data.parsed_email.header.message_id})\
+            ev = (
+                EvidenceBuilder.create()
+                .with_source(self.metadata.name)
+                .with_category("parser")
+                .with_severity(EvidenceSeverity.INFO)
+                .with_title("Email Already Parsed")
+                .with_description("Parsed email contract already exists in state.")
+                .with_metadata(
+                    {"message_id": input_data.parsed_email.header.message_id}
+                )
                 .build()
+            )
 
             tool_ev = ToolEvidence(
                 category=ev.category,
@@ -67,14 +71,19 @@ class ParserTool(AgentTool[AgentState]):
             )
 
         # Check for raw email content in state metadata
-        raw_content = input_data.metadata.get("raw_email") or input_data.metadata.get("raw_payload")
+        raw_content = input_data.metadata.get("raw_email") or input_data.metadata.get(
+            "raw_payload"
+        )
 
         if not raw_content:
             elapsed_ms = max(0, int((time.perf_counter_ns() - start_ns) / 1_000_000))
             return ToolResult(
                 tool_name=self.metadata.name,
                 status=ToolExecutionStatus.SKIPPED,
-                metadata={"parsed": False, "reason": "No raw email content found in state metadata"},
+                metadata={
+                    "parsed": False,
+                    "reason": "No raw email content found in state metadata",
+                },
                 evidence=(),
                 execution_time_ms=elapsed_ms,
             )
@@ -82,14 +91,18 @@ class ParserTool(AgentTool[AgentState]):
         # Parse raw_content into EmailInput
         parsed = self._parse_raw(raw_content)
 
-        ev = EvidenceBuilder.create()\
-            .with_source(self.metadata.name)\
-            .with_category("parser")\
-            .with_severity(EvidenceSeverity.INFO)\
-            .with_title("Raw Email Successfully Parsed")\
-            .with_description("Normalized EmailInput constructed from raw email payload.")\
-            .with_metadata({"message_id": parsed.header.message_id})\
+        ev = (
+            EvidenceBuilder.create()
+            .with_source(self.metadata.name)
+            .with_category("parser")
+            .with_severity(EvidenceSeverity.INFO)
+            .with_title("Raw Email Successfully Parsed")
+            .with_description(
+                "Normalized EmailInput constructed from raw email payload."
+            )
+            .with_metadata({"message_id": parsed.header.message_id})
             .build()
+        )
 
         tool_ev = ToolEvidence(
             category=ev.category,

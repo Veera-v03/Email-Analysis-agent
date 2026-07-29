@@ -58,8 +58,7 @@ def test_reports_contextual_impersonation_indicators_without_a_verdict() -> None
     result = _analyzer().analyze("Microsoft Security Support")
 
     assert (
-        ImpersonationIndicator.ORGANIZATION_REFERENCE
-        in result.impersonation_indicators
+        ImpersonationIndicator.ORGANIZATION_REFERENCE in result.impersonation_indicators
     )
     assert (
         ImpersonationIndicator.ORGANIZATION_SECURITY_CONTEXT

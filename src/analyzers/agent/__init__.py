@@ -1,5 +1,6 @@
 """Phase 5 agent foundation exports."""
 
+# pyrefly: ignore [missing-import]
 from src.analyzers.agent.attachments import AttachmentTool
 from src.analyzers.agent.attachments.models import (
     AttachmentAnalysisResult,
@@ -12,13 +13,13 @@ from src.analyzers.agent.attachments.reputation import (
     NullAttachmentReputationProvider,
 )
 from src.analyzers.agent.contracts import AgentTool
-from src.analyzers.agent.evidence import EvidenceAggregator, EvidenceBuilder
 from src.analyzers.agent.engine import (
     ExecutionOptions,
     ExecutionResult,
     ExecutionSummary,
     ToolExecutionEngine,
 )
+from src.analyzers.agent.evidence import EvidenceAggregator, EvidenceBuilder
 from src.analyzers.agent.exceptions import (
     DuplicateToolError,
     ToolExecutionError,
@@ -83,6 +84,3 @@ __all__ = [
     "ToolValidationError",
     "URLTool",
 ]
-
-
-

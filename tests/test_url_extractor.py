@@ -87,7 +87,7 @@ def test_extracts_http_url_from_body() -> None:
 
 
 def test_extracts_multiple_urls_from_body() -> None:
-    body = "First: https://first.example.com " "Second: https://second.example.com/page"
+    body = "First: https://first.example.com Second: https://second.example.com/page"
     results = RegexUrlExtractor().extract(_email(body))
 
     assert len(results) == 2
@@ -736,7 +736,7 @@ def test_composite_keeps_same_url_from_different_sources() -> None:
 
 
 def test_composite_plain_text_results_appear_before_html_results() -> None:
-    html = "https://text.example.com " '<a href="https://anchor.example.com">link</a>'
+    html = 'https://text.example.com <a href="https://anchor.example.com">link</a>'
     results = CompositeUrlExtractor().extract(_email(html))
 
     text_idx = next(

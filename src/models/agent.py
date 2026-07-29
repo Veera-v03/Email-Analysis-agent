@@ -7,7 +7,15 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    model_validator,
+)
 
 from src.models.email import EmailInput
 from src.models.evidence import Evidence, EvidenceCollection, EvidenceSeverity
@@ -74,7 +82,9 @@ class ToolEvidence(BaseModel):
             description=self.detail,
             severity=severity,
             source=source,
-            confidence=float(confidence) if isinstance(confidence, (int, float)) else None,
+            confidence=float(confidence)
+            if isinstance(confidence, (int, float))
+            else None,
             metadata=self.metadata,
         )
 
@@ -126,7 +136,10 @@ class ToolResult(BaseModel):
             else ToolEvidence.model_validate(item).to_evidence(tool_name)
             for item in legacy_evidence
         )
-        return {**data, "evidence_collection": EvidenceCollection(items=canonical_items)}
+        return {
+            **data,
+            "evidence_collection": EvidenceCollection(items=canonical_items),
+        }
 
 
 class ExecutionRecord(BaseModel):
@@ -304,4 +317,3 @@ class AgentState(BaseModel):
     def from_json(cls, json_str: str) -> AgentState:
         """Parse an AgentState instance from a JSON string."""
         return cls.model_validate_json(json_str)
-

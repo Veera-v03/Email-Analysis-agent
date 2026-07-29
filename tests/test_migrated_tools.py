@@ -7,8 +7,8 @@ from src.analyzers.agent.tools.report_tool import ReportTool
 from src.analyzers.agent.tools.sender_tool import SenderTool
 from src.analyzers.agent.tools.url_tool import URLTool
 from src.models.agent import AgentState, ToolCapability, ToolExecutionStatus
-from src.models.evidence import Evidence
 from src.models.email import EmailHeader, EmailInput
+from src.models.evidence import Evidence
 
 
 def test_parser_tool_execution() -> None:
@@ -103,7 +103,8 @@ def test_report_tool_execution() -> None:
     state_after_url = state_after_sender.with_tool_result(url_res)
     assert state_after_url.evidence.items
     assert {item.source for item in state_after_url.evidence.items} == {
-        "sender_tool", "url_tool"
+        "sender_tool",
+        "url_tool",
     }
 
     # Run ReportTool on state

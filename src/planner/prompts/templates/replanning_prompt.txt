@@ -1,0 +1,44 @@
+An execution plan was previously generated and executed, but the state has updated. Please generate a revised execution plan.
+
+EMAIL METADATA & CONTENT:
+- Message ID: {email_id}
+- Subject: {email_subject}
+- Sender: {email_sender}
+
+BODY SUMMARY:
+{email_body_summary}
+
+PREVIOUS HISTORY & UPDATED STATE:
+- Execution History: {execution_history}
+- Accumulated Evidence: {accumulated_evidence}
+
+REPLANNING STRATEGY:
+- Review the evidence accumulated.
+- If SPF failed: prioritize sender reputation and domain verification check.
+- If a shortened URL was detected: ensure url expansion and redirect analysis is scheduled.
+- If a suspicious attachment was found: schedule deeper attachment parsing.
+- If all checks are completed, output steps as an empty array: []
+
+JSON RESPONSE FORMAT REQUIRED:
+{{
+  "goal": "Explain the revised plan's overall goal",
+  "strategy": "adaptive",
+  "steps": [
+    {{
+      "step_id": "step_name",
+      "tool": "ToolName",
+      "priority": 1,
+      "reason": "Why this additional tool is needed given the new evidence",
+      "dependencies": [],
+      "conditions": [],
+      "expected_output": "What additional intelligence is expected",
+      "timeout": 30,
+      "estimated_cost": 0.001,
+      "estimated_value": 0.8
+    }}
+  ],
+  "confidence": 0.95
+}}
+
+Validate and output only the clean JSON structure.
+Revised Plan:

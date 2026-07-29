@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from src.analyzers.agent.exceptions import ToolExecutionError, ToolValidationError
 from src.models.agent import (
@@ -18,7 +18,7 @@ from src.models.agent import (
 TInput = TypeVar("TInput")
 
 
-class AgentTool(ABC, Generic[TInput]):
+class AgentTool[TInput](ABC):
     """Define the common contract every future tool will implement."""
 
     def __init__(self, metadata: ToolMetadata | None = None) -> None:

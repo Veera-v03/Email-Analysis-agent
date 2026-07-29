@@ -56,14 +56,16 @@ class SenderTool(AgentTool[AgentState]):
         # Convert evidence emitted by SenderIntelligenceEngine to ToolEvidence
         tool_evidence: list[ToolEvidence] = []
         for item in result.evidence.items:
-            ev = EvidenceBuilder.create()\
-                .with_source(self.metadata.name)\
-                .with_category(item.evidence_type)\
-                .with_severity(item.severity)\
-                .with_title(item.title)\
-                .with_description(item.description)\
-                .with_metadata(item.metadata)\
+            ev = (
+                EvidenceBuilder.create()
+                .with_source(self.metadata.name)
+                .with_category(item.evidence_type)
+                .with_severity(item.severity)
+                .with_title(item.title)
+                .with_description(item.description)
+                .with_metadata(item.metadata)
                 .build()
+            )
 
             tool_evidence.append(
                 ToolEvidence(
@@ -74,18 +76,24 @@ class SenderTool(AgentTool[AgentState]):
             )
 
         # Add overall summary evidence
-        summary_ev = EvidenceBuilder.create()\
-            .with_source(self.metadata.name)\
-            .with_category("sender_analysis")\
-            .with_severity(EvidenceSeverity.INFO)\
-            .with_title("Sender Intelligence Completed")\
-            .with_description(f"Sender intelligence analysis completed for sender '{input_data.parsed_email.header.sender}'.")\
-            .with_metadata({
-                "spf_status": result.authentication.spf.status.value,
-                "dkim_status": result.authentication.dkim.status.value,
-                "dmarc_status": result.authentication.dmarc.status.value,
-            })\
+        summary_ev = (
+            EvidenceBuilder.create()
+            .with_source(self.metadata.name)
+            .with_category("sender_analysis")
+            .with_severity(EvidenceSeverity.INFO)
+            .with_title("Sender Intelligence Completed")
+            .with_description(
+                f"Sender intelligence analysis completed for sender '{input_data.parsed_email.header.sender}'."
+            )
+            .with_metadata(
+                {
+                    "spf_status": result.authentication.spf.status.value,
+                    "dkim_status": result.authentication.dkim.status.value,
+                    "dmarc_status": result.authentication.dmarc.status.value,
+                }
+            )
             .build()
+        )
 
         tool_evidence.append(
             ToolEvidence(

@@ -85,10 +85,13 @@ class RfcAddressParser:
         original_value: str,
     ) -> ParsedEmailAddress:
         """Convert one standard-library parsed pair into an evidence model."""
-        normalized_display_name = self._bounded_text(
-            display_name.strip(),
-            MAX_DISPLAY_NAME_LENGTH,
-        ) or None
+        normalized_display_name = (
+            self._bounded_text(
+                display_name.strip(),
+                MAX_DISPLAY_NAME_LENGTH,
+            )
+            or None
+        )
         normalized_email = email_address.strip()
         raw_value = self._bounded_text(
             normalized_email or normalized_display_name or original_value.strip(),

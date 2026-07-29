@@ -159,7 +159,11 @@ def test_total_length_includes_query_and_fragment() -> None:
 def test_total_length_zero_for_empty_components() -> None:
     """All-None components produce total_length of 0."""
     c = _components(
-        scheme=None, host=None, path=None, query=None, fragment=None,
+        scheme=None,
+        host=None,
+        path=None,
+        query=None,
+        fragment=None,
         is_parseable=False,
     )
     result = _extract(c)
@@ -755,7 +759,11 @@ def test_entropy_score_correct_value() -> None:
 def test_unparseable_components_return_all_zeros() -> None:
     """An unparseable URL produces a valid result with all counts at zero."""
     c = _components(
-        scheme=None, host=None, path=None, query=None, fragment=None,
+        scheme=None,
+        host=None,
+        path=None,
+        query=None,
+        fragment=None,
         is_parseable=False,
     )
     result = _extract(c)

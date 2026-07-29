@@ -84,4 +84,3 @@ class ToolNotFoundError(ToolRegistryError, KeyError):
             details=details or {"tool_name": tool_name},
         )
         self.tool_name = tool_name
-

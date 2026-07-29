@@ -90,9 +90,7 @@ def _reconstruct(components: ParsedUrlComponents) -> str:
     netloc_parts: list[str] = []
     if components.username:
         if components.password:
-            netloc_parts.append(
-                f"{components.username}:{components.password}@"
-            )
+            netloc_parts.append(f"{components.username}:{components.password}@")
         else:
             netloc_parts.append(f"{components.username}@")
     if components.host:
@@ -117,10 +115,7 @@ def _shannon_entropy(text: str) -> float:
     for ch in text:
         freq[ch] = freq.get(ch, 0) + 1
     length = len(text)
-    return -sum(
-        (count / length) * math.log2(count / length)
-        for count in freq.values()
-    )
+    return -sum((count / length) * math.log2(count / length) for count in freq.values())
 
 
 def _path_depth(path: str | None) -> int:
@@ -227,9 +222,7 @@ class StructuralUrlFeatureExtractor:
         has_query = bool(query)
         default_port = _DEFAULT_PORTS.get(scheme)
         uses_default = (
-            has_port
-            and default_port is not None
-            and components.port == default_port
+            has_port and default_port is not None and components.port == default_port
         )
         double_ext = _has_double_extension(path)
 

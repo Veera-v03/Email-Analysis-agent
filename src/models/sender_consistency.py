@@ -74,6 +74,4 @@ class SenderHeaderComparisonResult(BaseModel):
         default=()
     )
     mismatches: tuple[HeaderMismatchEvidence, ...] = Field(default=())
-    unexpected_combinations: tuple[UnexpectedHeaderCombination, ...] = Field(
-        default=()
-    )
+    unexpected_combinations: tuple[UnexpectedHeaderCombination, ...] = Field(default=())

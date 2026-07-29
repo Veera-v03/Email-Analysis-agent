@@ -34,6 +34,15 @@ class Settings(BaseSettings):
     groq_api_key: SecretStr | None = None
     data_directory: Path = PROJECT_ROOT / "data"
 
+    planner_enabled: bool = True
+    planner_provider: str = "groq"
+    planner_model: str = "llama-3.1-8b-instant"
+    planner_temperature: float = 0.0
+    planner_max_tokens: int = 1024
+    planner_timeout: float = 30.0
+    planner_retry_count: int = 3
+    planner_retry_delay: float = 1.0
+
     @field_validator("debug", mode="before")
     @classmethod
     def normalize_debug_mode(cls, value: object) -> object:
@@ -50,6 +59,14 @@ class Settings(BaseSettings):
             debug=self.debug,
             log_level=self.log_level,
             data_directory=self.data_directory.resolve(),
+            planner_enabled=self.planner_enabled,
+            planner_provider=self.planner_provider,
+            planner_model=self.planner_model,
+            planner_temperature=self.planner_temperature,
+            planner_max_tokens=self.planner_max_tokens,
+            planner_timeout=self.planner_timeout,
+            planner_retry_count=self.planner_retry_count,
+            planner_retry_delay=self.planner_retry_delay,
         )
 
 
