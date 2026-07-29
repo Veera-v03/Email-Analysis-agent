@@ -107,3 +107,40 @@ also available from `src.models` where applicable.
 Phase 6 can add a planner above the engine: it should produce an ordered tool
 request and consume `ExecutionResult`, without changing current tools or state
 transitions.
+
+## Current investigation flow
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant A as FastAPI
+  participant P as Planner
+  participant E as Execution Engine
+  participant T as Tools
+  participant M as Memory
+  participant R as Reasoning
+  participant X as Explainability
+  C->>A: investigation request
+  A->>P: parsed email and registered capabilities
+  P->>E: execution plan
+  E->>T: sender, URL, attachment, OCR/QR, intelligence tools
+  T-->>E: ToolResult + canonical evidence
+  E-->>R: immutable AgentState
+  M-->>R: similar tenant investigations
+  R->>X: verdict, confidence, weighted score
+  X-->>A: FinalReport
+  A-->>C: structured JSON response
+```
+
+## Intelligence and extension points
+
+Tools emit `ToolEvidence`, which is adapted to canonical `EvidenceCollection`.
+The reasoning layer consumes current evidence, optional historical memory,
+campaign evidence, and threat-intelligence evidence. `RiskScoringEngine`
+provides a bounded, auditable score breakdown; `ExplainabilityEngine` exposes
+that breakdown in `FinalReport`.
+
+Add an external provider through its existing injected protocol. Add a durable
+memory backend by implementing `IVectorStore`. Add a report exporter through
+`ReportRenderer`. These extension points preserve AgentState and the execution
+pipeline.

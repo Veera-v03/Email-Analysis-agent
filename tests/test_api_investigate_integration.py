@@ -149,6 +149,17 @@ def test_api_investigate_integration_success() -> None:
         assert report["classification"] is not None
         assert "parser_tool" in report["executed_tools"]
 
+        memory_response = client.get(
+            "/api/v1/memory/search",
+            params={"q": "Urgent Action Required"},
+            headers=headers,
+        )
+        assert memory_response.status_code == 200
+        assert any(
+            item["record"].get("sender") == "spammer@malicious.domain.com"
+            for item in memory_response.json()
+        )
+
 
 def test_api_investigate_missing_api_key_fails() -> None:
     """Verify that investigation endpoint fails with 500 CONFIG_ERROR when GROQ_API_KEY is empty."""

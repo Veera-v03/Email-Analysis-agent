@@ -36,7 +36,7 @@ def test_agent_state_immutability() -> None:
     state = AgentState.create()
 
     with pytest.raises((TypeError, ValidationError)):
-        state.state_id = "new_id"  # type: ignore[misc]
+        state.state_id = "new_id"
 
 
 def test_with_parsed_email() -> None:

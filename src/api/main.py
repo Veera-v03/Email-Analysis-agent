@@ -45,6 +45,36 @@ from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+_organization_memory_services: dict[str, tuple[Any, Any]] = {}
+
+
+def get_memory_services(org_id: str) -> tuple[Any, Any]:
+    """Return the existing isolated memory retrieval and learning services."""
+    services = _organization_memory_services.get(org_id)
+    if services is not None:
+        return services
+
+    from pathlib import Path
+
+    from src.memory.embeddings.embedding_provider import DeterministicEmbeddingProvider
+    from src.memory.services.learning_pipeline import LearningPipeline
+    from src.memory.services.retrieval_service import MemoryRetrievalService
+    from src.memory.storage.vector_store import InMemoryVectorStore
+
+    safe_org_id = "".join(
+        char for char in org_id if char.isalnum() or char in ("-", "_")
+    )
+    store = InMemoryVectorStore(
+        persistence_file=Path("data") / "memory" / f"{safe_org_id or 'default'}.json"
+    )
+    embedder = DeterministicEmbeddingProvider()
+    services = (
+        MemoryRetrievalService(store, embedder),
+        LearningPipeline(store, embedder),
+    )
+    _organization_memory_services[org_id] = services
+    return services
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
@@ -317,16 +347,27 @@ def run_investigation(
     )
 
     # Initialize state
-    state = AgentState.create(parsed_email=email_input)
+    state = AgentState.create(
+        parsed_email=email_input,
+        metadata={"organization_id": org_id},
+    )
 
     start_time = time.perf_counter()
 
     # Instantiate reasoning & investigator engines with proper wiring
     from src.analyzers.agent.attachments import AttachmentTool
     from src.analyzers.agent.registry import ToolRegistry
+    from src.analyzers.agent.tools.ocr_tool import OCRTool
+    from src.analyzers.agent.tools.campaign_correlation_tool import (
+        CampaignCorrelationTool,
+    )
     from src.analyzers.agent.tools.parser_tool import ParserTool
+    from src.analyzers.agent.tools.qr_tool import QRTool
     from src.analyzers.agent.tools.report_tool import ReportTool
     from src.analyzers.agent.tools.sender_tool import SenderTool
+    from src.analyzers.agent.tools.threat_intelligence_tool import (
+        ThreatIntelligenceTool,
+    )
     from src.analyzers.agent.tools.url_tool import URLTool
     from src.config.settings import get_settings
     from src.planner.orchestration import PlannerOrchestrator
@@ -340,6 +381,10 @@ def run_investigation(
     registry.register(SenderTool())
     registry.register(URLTool())
     registry.register(AttachmentTool())
+    registry.register(OCRTool())
+    registry.register(QRTool())
+    registry.register(ThreatIntelligenceTool())
+    registry.register(CampaignCorrelationTool())
     registry.register(ReportTool())
 
     # Wire up LLM provider and prompt provider
@@ -363,7 +408,8 @@ def run_investigation(
     orchestrator = PlannerOrchestrator(registry)
 
     investigator = MultiStepInvestigator(planner, orchestrator)
-    reasoning_engine = ReasoningEngine()
+    memory_retrieval, learning_pipeline = get_memory_services(org_id)
+    reasoning_engine = ReasoningEngine(memory_retrieval=memory_retrieval)
     explain_engine = ExplainabilityEngine()
 
     # Perform multi-step execution loop
@@ -378,6 +424,7 @@ def run_investigation(
 
     verdict = reasoning_engine.reason(final_state.state)
     report = explain_engine.generate_report(final_state.state, verdict)
+    learning_pipeline.ingest_investigation(final_state.state, verdict, report)
 
     duration_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -458,17 +505,16 @@ def search_memory(
     auth: dict[str, Any] = Depends(require_permission("memory:search")),
 ) -> list[dict[str, Any]]:
     """Search memory store using semantic hybrid query."""
-    from src.memory.embeddings.embedding_provider import DeterministicEmbeddingProvider
-    from src.memory.services.retrieval_service import MemoryRetrievalService
-    from src.memory.storage.vector_store import InMemoryVectorStore
-
-    # Use global/in-memory store mockup for search
-    store = InMemoryVectorStore()
-    embedder = DeterministicEmbeddingProvider()
-    retrieval = MemoryRetrievalService(store, embedder)
+    retrieval, _ = get_memory_services(auth["org_id"])
 
     results = retrieval.hybrid_search(q, top_k=5)
-    return [r.model_dump() for r in results]
+    return [
+        {
+            **result.model_dump(exclude={"record"}),
+            "record": result.record.model_dump(),
+        }
+        for result in results
+    ]
 
 
 # 7. Analytics Dashboard API

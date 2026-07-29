@@ -14,7 +14,7 @@ def _components(**overrides: object) -> ParsedUrlComponents:
         "is_parseable": True,
     }
     defaults.update(overrides)
-    return ParsedUrlComponents(**defaults)
+    return ParsedUrlComponents.model_validate(defaults)
 
 
 def test_detects_ip_address_host() -> None:

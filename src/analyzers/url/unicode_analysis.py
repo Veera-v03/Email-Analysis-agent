@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from typing import Literal
 from urllib.parse import unquote
 
 from src.models.url import (
@@ -239,7 +240,12 @@ def _has_percent_encoded_unicode(text: str) -> bool:
 # Unicode normalization form detection
 # ---------------------------------------------------------------------------
 
-_NORM_FORMS = ("NFC", "NFKC", "NFD", "NFKD")
+_NORM_FORMS: tuple[Literal["NFC", "NFKC", "NFD", "NFKD"], ...] = (
+    "NFC",
+    "NFKC",
+    "NFD",
+    "NFKD",
+)
 
 
 def _normalization_form(text: str) -> str:

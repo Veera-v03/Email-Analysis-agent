@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from src.analyzers.agent.contracts import AgentTool
@@ -25,6 +27,7 @@ from src.planner import (
     ExplainabilityEngine,
     MultiStepInvestigator,
     Planner,
+    PlannerContext,
     PlannerEvaluator,
     PlannerOrchestrator,
     PlannerService,
@@ -37,6 +40,7 @@ from src.planner import (
     StepExecutionStatus,
 )
 from src.planner.exceptions.planner_exceptions import JSONValidationError
+from src.planner.interfaces.planner import LLMProvider, PromptProvider
 from src.planner.models.planner import PlannerMetadata
 
 
@@ -541,11 +545,14 @@ def test_explainability_report_compilation() -> None:
 # --- 6. Evaluator Framework Tests ---
 
 
-class MockScenarioLLMProvider:
+class MockScenarioLLMProvider(LLMProvider):
     """Mock LLM response tailored to evaluate scenarios."""
 
     def generate(
-        self, prompt: str, system_prompt: str | None = None, options: Any = None
+        self,
+        prompt: str,
+        system_prompt: str | None = None,
+        options: PlanningOptions | None = None,
     ) -> ProviderResponse:
         # Generate dynamic plan depending on prompt context
         prompt_lower = prompt.lower()
@@ -586,7 +593,7 @@ def test_evaluator_runs_scenarios() -> None:
 
     mock_llm = MockScenarioLLMProvider()
 
-    class DynamicPromptProvider:
+    class DynamicPromptProvider(PromptProvider):
         def get_prompt(self, template_name: str, **kwargs: Any) -> str:
             # Pass sender, subject, and body to allow MockScenarioLLMProvider to match
             return f"Sender: {kwargs.get('email_sender', '')} Subject: {kwargs.get('email_subject', '')} Body: {kwargs.get('email_body_summary', '')}"

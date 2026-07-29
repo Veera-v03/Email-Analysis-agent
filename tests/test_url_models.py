@@ -84,7 +84,7 @@ def test_extracted_url_is_frozen() -> None:
         position=0,
     )
     with pytest.raises(ValidationError):
-        url.position = 1  # type: ignore[misc]
+        url.position = 1
 
 
 def test_extracted_url_all_sources_are_valid() -> None:
@@ -416,7 +416,7 @@ def test_url_intelligence_result_is_frozen() -> None:
     result = UrlIntelligenceResult(extracted=extracted)
 
     with pytest.raises(ValidationError):
-        result.extracted = extracted  # type: ignore[misc]
+        result.extracted = extracted
 
 
 def test_url_intelligence_result_rejects_extra_fields() -> None:

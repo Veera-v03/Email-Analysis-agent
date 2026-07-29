@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest import mock
 
 from src.analyzers.agent.registry import ToolRegistry
@@ -18,9 +19,9 @@ class MockLLMProvider(LLMProvider):
 
     def __init__(self, response_content: str) -> None:
         self.response_content = response_content
-        self.last_prompt = None
-        self.last_system_prompt = None
-        self.last_options = None
+        self.last_prompt: str | None = None
+        self.last_system_prompt: str | None = None
+        self.last_options: PlanningOptions | None = None
 
     def generate(
         self,
@@ -120,7 +121,7 @@ def test_planner_service_policy_failure() -> None:
 
     # Policy error caught inside PlannerService.plan, leading to success=False
     assert result.success is False
-    assert "references unregistered tool 'sender_tool'" in result.error_message
+    assert "references unregistered tool 'sender_tool'" in (result.error_message or "")
 
 
 def test_planner_service_invalid_json_handled() -> None:
@@ -138,4 +139,4 @@ def test_planner_service_invalid_json_handled() -> None:
     result = service.plan(state)
 
     assert result.success is False
-    assert "Failed to decode response as JSON" in result.error_message
+    assert "Failed to decode response as JSON" in (result.error_message or "")

@@ -63,7 +63,7 @@ class ExecutionPlanBuilder(ABC):
     """Abstract interface to build the ExecutionPlan from raw parsed dictionary data."""
 
     @abstractmethod
-    def build_plan(self, response_data: dict[str, Any]) -> ExecutionPlan:
+    def build_plan(self, response_data: str | dict[str, Any]) -> ExecutionPlan:
         """Parse and construct a strongly typed ExecutionPlan from raw data."""
 
 

@@ -23,7 +23,7 @@ def test_evidence_model_defaults_and_immutability() -> None:
     assert ev.timestamp != ""
 
     with pytest.raises((TypeError, ValidationError)):
-        ev.title = "New Title"  # type: ignore[misc]
+        ev.title = "New Title"
 
 
 def test_evidence_json_and_dict_serialization() -> None:
@@ -149,7 +149,12 @@ def test_evidence_aggregator_deduplication_and_sorting() -> None:
         metadata={"severity": "medium"},
     )
 
-    items = [ev_high, ev_critical, ev_duplicate, tool_ev]
+    items: list[Evidence | ToolEvidence | tuple[Evidence | ToolEvidence, ...]] = [
+        ev_high,
+        ev_critical,
+        ev_duplicate,
+        tool_ev,
+    ]
     aggregated = EvidenceAggregator.aggregate(items, default_source="sender_tool")
 
     # Should deduplicate duplicate item (3 unique items remaining)

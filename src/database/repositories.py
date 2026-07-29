@@ -7,13 +7,13 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from src.database.db_client import db_client
+from src.database.db_client import DatabaseClient, db_client
 
 
 class OrganizationRepository:
     """Handles persistence operations for tenant Organizations."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def create(self, name: str, org_id: str | None = None) -> dict[str, Any]:
@@ -56,7 +56,7 @@ class OrganizationRepository:
 class UserRepository:
     """Handles CRUD persistence operations for User credentials and role settings."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def create(
@@ -165,7 +165,7 @@ class UserRepository:
 class APIKeyRepository:
     """Handles CRUD persistence operations for API Key verification."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def create(
@@ -229,7 +229,7 @@ class APIKeyRepository:
 class AuditLogRepository:
     """Handles append-only persistent logging for SOC audit trails."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def log(
@@ -280,7 +280,7 @@ class AuditLogRepository:
 class InvestigationMetadataRepository:
     """Handles persistence of investigation runs."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def save(
@@ -362,7 +362,7 @@ class InvestigationMetadataRepository:
 class PlannerMetricsRepository:
     """Handles persistence of planner engine metrics."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def save(
@@ -402,7 +402,7 @@ class PlannerMetricsRepository:
 class AnalyticsRepository:
     """Caches aggregated dashboard stats to optimize analytical query speed."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def cache_metric(self, org_id: str, name: str, value: float) -> None:

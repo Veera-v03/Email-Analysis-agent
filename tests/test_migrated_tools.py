@@ -1,14 +1,28 @@
 from __future__ import annotations
 
+from typing import cast
+
 from src.analyzers.agent.attachments import AttachmentTool
 from src.analyzers.agent.registry import ToolRegistry
 from src.analyzers.agent.tools.parser_tool import ParserTool
 from src.analyzers.agent.tools.report_tool import ReportTool
 from src.analyzers.agent.tools.sender_tool import SenderTool
 from src.analyzers.agent.tools.url_tool import URLTool
+from src.analyzers.sender.engine import SenderIntelligenceEngine
 from src.models.agent import AgentState, ToolCapability, ToolExecutionStatus
 from src.models.email import EmailHeader, EmailInput
 from src.models.evidence import Evidence
+from src.models.sender_analysis import SenderAnalysisResult
+
+
+class StaticSenderEngine:
+    """Return a predefined sender result for SenderTool contract tests."""
+
+    def __init__(self, result: SenderAnalysisResult) -> None:
+        self._result = result
+
+    def analyze(self, email: EmailInput) -> SenderAnalysisResult:
+        return self._result
 
 
 def test_parser_tool_execution() -> None:
@@ -53,7 +67,50 @@ def test_sender_tool_execution() -> None:
 
     assert result.status is ToolExecutionStatus.COMPLETED
     assert result.metadata["from_sender"] == "admin@example.com"
+    assert result.metadata["spf_status"] == "UNKNOWN"
+    assert result.metadata["dkim_status"] == "UNKNOWN"
+    assert result.metadata["dmarc_status"] == "UNKNOWN"
     assert len(result.evidence) >= 2
+
+
+def test_sender_tool_handles_missing_authentication_analysis() -> None:
+    """A nullable authentication result produces stable unknown statuses."""
+    email = EmailInput(
+        header=EmailHeader(
+            message_id="<sender-auth-missing@example.com>",
+            sender="admin@example.com",
+            recipients=["user@example.com"],
+            subject="Security Notice",
+            sent_at="2026-07-28T11:00:00Z",
+        ),
+        body_text="Please review your account",
+    )
+    engine_result = SenderIntelligenceEngine().analyze(email)
+    tool = SenderTool(
+        sender_engine=cast(
+            SenderIntelligenceEngine,
+            StaticSenderEngine(
+                engine_result.model_copy(update={"authentication": None})
+            ),
+        )
+    )
+
+    result = tool.execute(AgentState.create(parsed_email=email))
+
+    assert result.status is ToolExecutionStatus.COMPLETED
+    assert {
+        key: result.metadata[key]
+        for key in ("spf_status", "dkim_status", "dmarc_status")
+    } == {
+        "spf_status": "UNKNOWN",
+        "dkim_status": "UNKNOWN",
+        "dmarc_status": "UNKNOWN",
+    }
+    assert result.evidence[-1].metadata == {
+        "spf_status": "UNKNOWN",
+        "dkim_status": "UNKNOWN",
+        "dmarc_status": "UNKNOWN",
+    }
 
 
 def test_url_tool_execution() -> None:

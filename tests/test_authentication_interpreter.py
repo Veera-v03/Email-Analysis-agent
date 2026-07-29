@@ -49,6 +49,19 @@ def test_interprets_received_spf_and_arc_seal_headers() -> None:
     assert AuthenticationHeaderSource.ARC_SEAL in result.arc.header_sources
 
 
+def test_interprets_partially_populated_authentication_results() -> None:
+    """Unreported mechanisms remain unknown when only SPF is reported."""
+    result = DeterministicAuthenticationHeaderInterpreter().interpret(
+        MappingHeaderProvider(
+            {"Authentication-Results": "mx.example; spf=pass smtp.mailfrom=example.com"}
+        )
+    )
+
+    assert result.spf.status is AuthenticationStatus.PASS
+    assert result.dkim.status is AuthenticationStatus.UNKNOWN
+    assert result.dmarc.status is AuthenticationStatus.UNKNOWN
+
+
 def test_signature_presence_without_result_remains_unknown() -> None:
     """A signature header alone is evidence of presence, not validation success."""
     headers = MappingHeaderProvider(

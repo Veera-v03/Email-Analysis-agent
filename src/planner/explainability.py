@@ -39,6 +39,14 @@ class FinalReport(BaseModel):
     mitre_attack_mapping: tuple[dict[str, Any], ...] = Field(default_factory=tuple)
     indicators_of_compromise: dict[str, list[str]] = Field(default_factory=dict)
     threat_classification: tuple[str, ...] = Field(default_factory=tuple)
+    risk_score: float = Field(default=0.0, ge=0.0, le=100.0)
+    score_breakdown: tuple[dict[str, Any], ...] = Field(default_factory=tuple)
+    executive_summary: str = Field(default="")
+    incident_category: str = Field(default="unknown")
+    recommended_priority: str = Field(default="P4")
+    business_impact: str = Field(default="No material impact identified.")
+    confidence_breakdown: tuple[dict[str, Any], ...] = Field(default_factory=tuple)
+    analyst_notes: tuple[str, ...] = Field(default_factory=tuple)
 
 
 class ExplainabilityEngine:
@@ -240,6 +248,22 @@ class ExplainabilityEngine:
                 rec_list.append(rec)
 
         recommendations_str = "\n".join(f"- {r}" for r in rec_list)
+        priority = {"critical": "P1", "high": "P2", "medium": "P3"}.get(risk, "P4")
+        incident_category = (
+            "phishing"
+            if risk in {"critical", "high"}
+            else "suspicious_email"
+            if risk == "medium"
+            else "benign"
+        )
+        confidence_breakdown = tuple(
+            {
+                "factor": item.get("factor", "general"),
+                "contribution": item.get("points", 0.0),
+                "evidence_id": item.get("evidence_id"),
+            }
+            for item in reasoning.score_breakdown
+        )
 
         return FinalReport(
             summary=reasoning.summary,
@@ -249,11 +273,28 @@ class ExplainabilityEngine:
             executed_tools=tuple(executed),
             skipped_tools=tuple(skipped),
             evidence=tuple(evidence_items),
-            reasoning=reasoning.security_explanation,
+            reasoning=(
+                f"{reasoning.security_explanation}\n\n{reasoning.analyst_notes}"
+            ),
             recommendations=recommendations_str,
             timeline=tuple(timeline),
             execution_statistics=stats,
             mitre_attack_mapping=tuple(mitre_mapping),
             indicators_of_compromise=iocs,
             threat_classification=tuple(threat_class),
+            risk_score=reasoning.risk_score,
+            score_breakdown=reasoning.score_breakdown,
+            executive_summary=(
+                f"{priority} {incident_category.replace('_', ' ')} investigation: "
+                f"{reasoning.summary}"
+            ),
+            incident_category=incident_category,
+            recommended_priority=priority,
+            business_impact=(
+                "Potential credential, financial, or malware exposure requires review."
+                if risk in {"critical", "high"}
+                else "Limited impact pending analyst validation."
+            ),
+            confidence_breakdown=confidence_breakdown,
+            analyst_notes=tuple(reasoning.analyst_notes.splitlines()),
         )

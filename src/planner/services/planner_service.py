@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from src.utils.logging import get_logger
-
-logger = get_logger(__name__)
-
 import time
 from datetime import UTC, datetime
 from typing import Any
@@ -30,6 +26,9 @@ from src.planner.models.planner import (
     PlanningResult,
     ToolSelection,
 )
+from src.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class DefaultPlannerContextBuilder(PlannerContextBuilder):

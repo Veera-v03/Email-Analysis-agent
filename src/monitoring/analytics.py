@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.database.db_client import db_client
+from src.database.db_client import DatabaseClient, db_client
 
 
 class AnalyticsEngine:
     """Aggregates and compiles analytics reports from historical database records."""
 
-    def __init__(self, client=None) -> None:
+    def __init__(self, client: DatabaseClient | None = None) -> None:
         self._db = client or db_client
 
     def get_organization_dashboard(self, org_id: str) -> dict[str, Any]:

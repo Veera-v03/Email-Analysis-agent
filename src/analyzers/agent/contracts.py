@@ -56,7 +56,7 @@ class AgentTool[TInput](ABC):
 
     def _build_failed_result(
         self,
-        error: ToolExecutionError,
+        error: ToolValidationError | ToolExecutionError,
         started_ns: int,
     ) -> ToolResult:
         elapsed_ms = max(0, int((time.perf_counter_ns() - started_ns) / 1_000_000))

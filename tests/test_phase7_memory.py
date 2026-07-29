@@ -8,7 +8,6 @@ from pathlib import Path
 from src.memory import (
     AnalystFeedbackSystem,
     DeterministicEmbeddingProvider,
-    EvidenceRepository,
     InMemoryVectorStore,
     InvestigationMemory,
     InvestigationRepository,
@@ -71,7 +70,9 @@ def test_in_memory_vector_store_crud() -> None:
 
     updated = record.model_copy(update={"confidence_score": 0.99})
     store.update(updated)
-    assert store.get("mem_inv_1").confidence_score == 0.99
+    updated_record = store.get("mem_inv_1")
+    assert updated_record is not None
+    assert updated_record.confidence_score == 0.99
 
     assert store.delete("mem_inv_1") is True
     assert store.count() == 0
@@ -147,7 +148,9 @@ def test_vector_store_persistence_snapshot() -> None:
         # Restore into new store instance
         store2 = InMemoryVectorStore(persistence_file=snap_file)
         assert store2.count() == 1
-        assert store2.get("snap_1").subject == "Snapshot Test"
+        restored_record = store2.get("snap_1")
+        assert isinstance(restored_record, InvestigationMemory)
+        assert restored_record.subject == "Snapshot Test"
 
 
 # --- 3. Memory Repositories Tests ---
@@ -158,7 +161,6 @@ def test_typed_memory_repositories() -> None:
     embedder = DeterministicEmbeddingProvider(dimension=32)
 
     inv_repo = InvestigationRepository(store, embedder)
-    ev_repo = EvidenceRepository(store, embedder)
 
     inv_rec = InvestigationMemory(
         email_id="<inv@repo>",
@@ -267,6 +269,7 @@ def test_learning_pipeline_and_analyst_feedback() -> None:
     )
     assert fb.memory_id == inv_mem.memory_id
     updated_inv = store.get(inv_mem.memory_id)
+    assert updated_inv is not None
     assert updated_inv.confidence_score == 0.99
 
 

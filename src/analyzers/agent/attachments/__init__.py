@@ -31,6 +31,7 @@ from src.analyzers.agent.attachments.signature_analyzer import (
     AttachmentSignatureAnalyzer,
 )
 from src.analyzers.agent.attachments.tool import AttachmentTool
+from src.analyzers.agent.attachments.yara_analyzer import IYaraScanner, YaraRuleAnalyzer
 
 __all__ = [
     "ArchiveFormatAnalyzer",
@@ -46,10 +47,12 @@ __all__ = [
     "ExecutableFormatAnalyzer",
     "IAttachmentAnalyzer",
     "IAttachmentReputationProvider",
+    "IYaraScanner",
     "NullAttachmentReputationProvider",
     "OfficeDocumentAnalyzer",
     "PdfFormatAnalyzer",
     "ReputationStatus",
     "calculate_shannon_entropy",
     "compute_attachment_hashes",
+    "YaraRuleAnalyzer",
 ]

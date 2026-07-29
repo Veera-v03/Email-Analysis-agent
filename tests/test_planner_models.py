@@ -17,9 +17,9 @@ from src.planner.models.planner import (
 
 def test_execution_strategy_enum() -> None:
     """Ensure strategy choices exist and map correct string values."""
-    assert ExecutionStrategy.TARGETED == "targeted"
-    assert ExecutionStrategy.SEQUENTIAL == "sequential"
-    assert ExecutionStrategy.FULL == "full"
+    assert ExecutionStrategy.TARGETED.value == "targeted"
+    assert ExecutionStrategy.SEQUENTIAL.value == "sequential"
+    assert ExecutionStrategy.FULL.value == "full"
 
 
 def test_execution_step_validates() -> None:

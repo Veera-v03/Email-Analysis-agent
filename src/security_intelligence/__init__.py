@@ -19,6 +19,12 @@ from src.security_intelligence.threat_intel.threat_intel_service import (
     LocalThreatIntelProvider,
     ThreatIntelService,
 )
+from src.security_intelligence.threat_intel.framework import (
+    ThreatIntelObservation,
+    ThreatIntelProvider,
+    ThreatIntelTargetType,
+    ThreatIntelligenceFramework,
+)
 
 __all__ = [
     # Services
@@ -29,6 +35,10 @@ __all__ = [
     "IThreatIntelProvider",
     "LocalThreatIntelProvider",
     "ThreatIntelService",
+    "ThreatIntelObservation",
+    "ThreatIntelProvider",
+    "ThreatIntelTargetType",
+    "ThreatIntelligenceFramework",
     "MalwareService",
     "CampaignCorrelationEngine",
     "BehaviorAnalyzer",

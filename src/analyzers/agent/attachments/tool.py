@@ -26,7 +26,9 @@ from src.analyzers.agent.attachments.reputation import (
 from src.analyzers.agent.attachments.signature_analyzer import (
     AttachmentSignatureAnalyzer,
 )
+from src.analyzers.agent.attachments.yara_analyzer import IYaraScanner, YaraRuleAnalyzer
 from src.analyzers.agent.contracts import AgentTool
+from src.analyzers.agent.enterprise_intelligence import EnterpriseIntelligenceService
 from src.models.agent import (
     AgentState,
     ToolCapability,
@@ -45,16 +47,20 @@ class AttachmentTool(AgentTool[AgentState]):
         metadata: ToolMetadata | None = None,
         analyzers: tuple[IAttachmentAnalyzer, ...] | None = None,
         reputation_provider: IAttachmentReputationProvider | None = None,
+        enterprise_intelligence: EnterpriseIntelligenceService | None = None,
+        yara_scanner: IYaraScanner | None = None,
     ) -> None:
         default_metadata = ToolMetadata(
             name="attachment_tool",
-            description="Analyzes email attachments for security anomalies and magic bytes.",
+            description=(
+                "Analyzes email attachments for security anomalies and magic bytes."
+            ),
             version="1.0.0",
             capabilities=(ToolCapability.ATTACHMENT,),
             tags=("attachment", "security", "malware_analysis"),
         )
         super().__init__(metadata or default_metadata)
-        self._analyzers: tuple[IAttachmentAnalyzer, ...] = analyzers or (
+        default_analyzers: tuple[IAttachmentAnalyzer, ...] = (
             AttachmentMetadataAnalyzer(),
             AttachmentSignatureAnalyzer(),
             AttachmentAnomalyAnalyzer(),
@@ -65,9 +71,13 @@ class AttachmentTool(AgentTool[AgentState]):
             PdfFormatAnalyzer(),
             ExecutableFormatAnalyzer(),
         )
+        if yara_scanner is not None:
+            default_analyzers += (YaraRuleAnalyzer(yara_scanner),)
+        self._analyzers = analyzers or default_analyzers
         self._reputation_provider: IAttachmentReputationProvider = (
             reputation_provider or NullAttachmentReputationProvider()
         )
+        self._enterprise_intelligence = enterprise_intelligence
 
     def execute(self, input_data: AgentState) -> ToolResult:
         """Execute modular attachment security analysis on AgentState attachments."""
@@ -90,8 +100,24 @@ class AttachmentTool(AgentTool[AgentState]):
         for payload in payloads:
             analyzed_count += 1
             for analyzer in self._analyzers:
-                ev_items = analyzer.analyze(payload)
-                all_evidence.extend(ev_items)
+                try:
+                    all_evidence.extend(analyzer.analyze(payload))
+                except Exception as error:
+                    all_evidence.append(
+                        ToolEvidence(
+                            category="attachment_analyzer_diagnostic",
+                            detail=(
+                                f"{analyzer.__class__.__name__} could not analyze "
+                                f"'{payload.filename}': {error}"
+                            ),
+                            metadata={
+                                "severity": "info",
+                                "analyzer": analyzer.__class__.__name__,
+                                "filename": payload.filename,
+                                "exception_type": error.__class__.__name__,
+                            },
+                        )
+                    )
 
             # Reputation check if content bytes are present
             if payload.content:
@@ -116,6 +142,11 @@ class AttachmentTool(AgentTool[AgentState]):
                         )
                     )
 
+                if self._enterprise_intelligence is not None:
+                    all_evidence.extend(
+                        self._enterprise_reputation_evidence(payload.filename, sha256)
+                    )
+
         elapsed_ms = max(0, int((time.perf_counter_ns() - start_ns) / 1_000_000))
         return ToolResult(
             tool_name=self.metadata.name,
@@ -128,6 +159,45 @@ class AttachmentTool(AgentTool[AgentState]):
             evidence=tuple(all_evidence),
             execution_time_ms=elapsed_ms,
         )
+
+    def _enterprise_reputation_evidence(
+        self, filename: str, sha256: str
+    ) -> tuple[ToolEvidence, ...]:
+        """Add optional cached external hash intelligence without affecting analysis."""
+        if self._enterprise_intelligence is None:
+            return ()
+        enrichment = self._enterprise_intelligence.enrich(sha256)
+        evidence: list[ToolEvidence] = []
+        for observation in enrichment.observations:
+            evidence.append(
+                ToolEvidence(
+                    category=f"attachment_enterprise_{observation.provider_name}",
+                    detail=observation.summary,
+                    metadata={
+                        "severity": "high" if observation.malicious else "info",
+                        "confidence": observation.confidence,
+                        "provider": observation.provider_name,
+                        "filename": filename,
+                        "sha256": sha256,
+                        "from_cache": enrichment.from_cache,
+                        **observation.metadata,
+                    },
+                )
+            )
+        for diagnostic in enrichment.diagnostics:
+            evidence.append(
+                ToolEvidence(
+                    category="attachment_enterprise_diagnostic",
+                    detail=f"{diagnostic.provider_name}: {diagnostic.reason}",
+                    metadata={
+                        "severity": "info",
+                        "provider": diagnostic.provider_name,
+                        "filename": filename,
+                        "sha256": sha256,
+                    },
+                )
+            )
+        return tuple(evidence)
 
     def _extract_payloads(self, state: AgentState) -> list[AttachmentPayload]:
         """Extract attachment payloads from AgentState without modifying state."""

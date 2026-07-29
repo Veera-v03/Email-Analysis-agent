@@ -5,6 +5,9 @@ from __future__ import annotations
 import time
 
 from src.analyzers.agent.contracts import AgentTool
+from src.analyzers.agent.enterprise_intelligence import (
+    EnterpriseIntelligenceService,
+)
 from src.analyzers.agent.evidence import EvidenceBuilder
 from src.analyzers.url.engine import UrlIntelligenceEngine
 from src.models.agent import (
@@ -25,6 +28,7 @@ class URLTool(AgentTool[AgentState]):
         self,
         metadata: ToolMetadata | None = None,
         url_engine: UrlIntelligenceEngine | None = None,
+        enterprise_intelligence: EnterpriseIntelligenceService | None = None,
     ) -> None:
         default_metadata = ToolMetadata(
             name="url_tool",
@@ -35,6 +39,9 @@ class URLTool(AgentTool[AgentState]):
         )
         super().__init__(metadata or default_metadata)
         self._url_engine = url_engine or UrlIntelligenceEngine()
+        self._enterprise_intelligence = (
+            enterprise_intelligence or EnterpriseIntelligenceService()
+        )
 
     def execute(self, input_data: AgentState) -> ToolResult:
         """Execute Phase 4 URL intelligence analysis on AgentState."""
@@ -90,6 +97,8 @@ class URLTool(AgentTool[AgentState]):
                     )
                 )
 
+            tool_evidence.extend(self._enterprise_evidence(item.extracted.raw_value))
+
         # Summary evidence
         summary_ev = (
             EvidenceBuilder.create()
@@ -132,3 +141,42 @@ class URLTool(AgentTool[AgentState]):
             evidence=tuple(tool_evidence),
             execution_time_ms=elapsed_ms,
         )
+
+    def _enterprise_evidence(self, url: str) -> tuple[ToolEvidence, ...]:
+        """Append optional URL reputation and infrastructure intelligence."""
+        enrichment = self._enterprise_intelligence.enrich(url)
+        evidence: list[ToolEvidence] = []
+        for observation in enrichment.observations:
+            evidence.append(
+                ToolEvidence(
+                    category=f"url_enterprise_{observation.provider_name}",
+                    detail=observation.summary,
+                    metadata={
+                        "severity": (
+                            EvidenceSeverity.HIGH.value
+                            if observation.malicious
+                            else EvidenceSeverity.INFO.value
+                        ),
+                        "confidence": observation.confidence,
+                        "provider": observation.provider_name,
+                        "url": url,
+                        "from_cache": enrichment.from_cache,
+                        **observation.metadata,
+                    },
+                )
+            )
+        for diagnostic in enrichment.diagnostics:
+            evidence.append(
+                ToolEvidence(
+                    category="url_enterprise_diagnostic",
+                    detail=(
+                        f"{diagnostic.provider_name}: {diagnostic.reason}"
+                    ),
+                    metadata={
+                        "severity": EvidenceSeverity.INFO.value,
+                        "provider": diagnostic.provider_name,
+                        "url": url,
+                    },
+                )
+            )
+        return tuple(evidence)

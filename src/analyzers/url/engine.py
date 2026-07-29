@@ -19,13 +19,18 @@ from src.analyzers.url.unicode_analysis import DeterministicUrlUnicodeAnalyzer
 from src.models.email import EmailInput
 from src.models.url import (
     FinalUrlIntelligence,
+    ExtractedUrl,
     HtmlContext,
+    HyperlinkObservation,
+    NormalizedUrl,
     ParsedUrlComponents,
     RedirectMechanism,
     RedirectResult,
     ReputationResult,
     SuspiciousPatternCategory,
     SuspiciousPatternMatch,
+    UrlShortenerAnalysis,
+    UrlUnicodeAnalysis,
     UrlEvidence,
     UrlExtractionSource,
 )
@@ -70,7 +75,7 @@ class UrlIntelligenceEngine:
             return ()
 
         html_analysis = self._hyperlink_analyzer.analyze(extracted)
-        chosen_urls: dict[str, object] = {}
+        chosen_urls: dict[str, ExtractedUrl] = {}
         for url in extracted:
             key = url.raw_value.lower()
             existing = chosen_urls.get(key)
@@ -145,7 +150,7 @@ class UrlIntelligenceEngine:
             is_parseable=bool(parsed.scheme or parsed.netloc),
         )
 
-    def _html_context(self, url) -> HtmlContext | None:
+    def _html_context(self, url: ExtractedUrl) -> HtmlContext | None:
         if url.html_context is None:
             if url.source is UrlExtractionSource.HTML_ANCHOR:
                 return HtmlContext(tag="a", attribute="href", snippet=None)
@@ -156,7 +161,7 @@ class UrlIntelligenceEngine:
             snippet=url.html_context,
         )
 
-    def _redirect_result(self, url) -> RedirectResult | None:
+    def _redirect_result(self, url: ExtractedUrl) -> RedirectResult | None:
         if url.source is UrlExtractionSource.HTML_ANCHOR:
             return RedirectResult(
                 mechanism=RedirectMechanism.HTML,
@@ -182,14 +187,14 @@ class UrlIntelligenceEngine:
     def _build_evidence(
         self,
         *,
-        normalized,
-        shortener,
-        suspicious_patterns,
-        html_context,
-        redirect_result,
-        reputation_result,
-        unicode_analysis,
-        html_observations,
+        normalized: NormalizedUrl | None,
+        shortener: UrlShortenerAnalysis,
+        suspicious_patterns: tuple[SuspiciousPatternMatch, ...],
+        html_context: HtmlContext | None,
+        redirect_result: RedirectResult | None,
+        reputation_result: ReputationResult | None,
+        unicode_analysis: UrlUnicodeAnalysis,
+        html_observations: tuple[HyperlinkObservation, ...],
     ) -> tuple[UrlEvidence, ...]:
         evidence: list[UrlEvidence] = []
         if normalized is not None and normalized.is_valid:

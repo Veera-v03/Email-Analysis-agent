@@ -68,7 +68,7 @@ class WebhookNotificationChannel(INotificationChannel):
             logger.debug("Outbound Webhook URL not configured. Skipping.")
             return False
 
-        payload = {
+        payload: dict[str, Any] = {
             "event": event.event_name,
             "title": event.title,
             "message": event.message,
@@ -95,7 +95,7 @@ class SlackNotificationChannel(INotificationChannel):
             return False
 
         # Slack Block Kit structure payload
-        slack_payload = {
+        slack_payload: dict[str, Any] = {
             "blocks": [
                 {
                     "type": "header",

@@ -15,6 +15,7 @@ from src.models.agent import (
     AgentState,
     ToolErrorInfo,
     ToolExecutionStatus,
+    ToolResult,
 )
 from src.planner.models.planner import ExecutionPlan, ExecutionStep
 
@@ -81,6 +82,7 @@ class PlannerOrchestrator:
         self._condition_evaluators: dict[str, Callable[[AgentState], bool]] = {
             "has_urls": self._eval_has_urls,
             "has_attachments": self._eval_has_attachments,
+            "has_image_attachments": self._eval_has_image_attachments,
             "spf_failed": self._eval_spf_failed,
             "suspicious_sender": self._eval_suspicious_sender,
             "always_true": lambda s: True,
@@ -149,7 +151,6 @@ class PlannerOrchestrator:
 
             # 2. Check dependencies status
             dep_failed = False
-            dep_skipped = False
             for dep in step.dependencies:
                 dep_status = step_status_map.get(dep)
                 if not dep_status:
@@ -164,8 +165,6 @@ class PlannerOrchestrator:
                     StepExecutionStatus.CANCELLED,
                 ):
                     dep_failed = True
-                elif dep_status == StepExecutionStatus.SKIPPED:
-                    dep_skipped = True
 
             if dep_failed:
                 step_status_map[step.step_id] = StepExecutionStatus.CANCELLED
@@ -213,26 +212,25 @@ class PlannerOrchestrator:
                 continue
 
             # 4. Resolve and execute tool
-            step_record = self._execute_step_with_retries(step, current_state)
+            step_record, tool_result = self._execute_step_with_retries(
+                step, current_state
+            )
 
             # Record status and update state
             step_status_map[step.step_id] = step_record.status
             records.append(step_record)
 
             if step_record.status == StepExecutionStatus.COMPLETED:
-                # If tool completed, let's fetch the result from registry and update state
+                # Propagate the successful result that was already produced during
+                # retry handling. Re-executing here would duplicate tool work and
+                # evidence in the investigation state.
                 try:
-                    tool = self._registry.get(step.tool)
-                    # Note: engine is used for backwards compatibility or we run the tool directly
-                    tool_start_ns = time.perf_counter_ns()
-                    result = tool.execute_with_handling(current_state)
-                    tool_time_ms = max(
-                        0, int((time.perf_counter_ns() - tool_start_ns) / 1_000_000)
-                    )
-
-                    # Update tool result details
-                    result = result.model_copy(
-                        update={"execution_time_ms": tool_time_ms}
+                    if tool_result is None:
+                        raise RuntimeError(
+                            "Completed tool step did not return an execution result."
+                        )
+                    result = tool_result.model_copy(
+                        update={"execution_time_ms": step_record.execution_time_ms}
                     )
                     details = {"requested_tool": step.tool, "step_id": step.step_id}
                     current_state = current_state.with_tool_result(result, details)
@@ -283,7 +281,7 @@ class PlannerOrchestrator:
 
     def _execute_step_with_retries(
         self, step: ExecutionStep, state: AgentState
-    ) -> StepExecutionRecord:
+    ) -> tuple[StepExecutionRecord, ToolResult | None]:
         """Execute a step's tool and apply retries according to retry policy."""
         retry_config = step.retry_policy or {}
         max_retries = retry_config.get("max_retries", 0)
@@ -296,16 +294,19 @@ class PlannerOrchestrator:
         try:
             tool = self._registry.get(step.tool)
         except ToolNotFoundError:
-            return StepExecutionRecord(
-                step_id=step.step_id,
-                tool_name=step.tool,
-                status=StepExecutionStatus.FAILED,
-                started_at=started_at,
-                finished_at=datetime.now(UTC).isoformat(),
-                execution_time_ms=0,
-                error_message=f"Tool '{step.tool}' not found in registry.",
-                estimated_cost=step.estimated_cost,
-                estimated_value=step.estimated_value,
+            return (
+                StepExecutionRecord(
+                    step_id=step.step_id,
+                    tool_name=step.tool,
+                    status=StepExecutionStatus.FAILED,
+                    started_at=started_at,
+                    finished_at=datetime.now(UTC).isoformat(),
+                    execution_time_ms=0,
+                    error_message=f"Tool '{step.tool}' not found in registry.",
+                    estimated_cost=step.estimated_cost,
+                    estimated_value=step.estimated_value,
+                ),
+                None,
             )
 
         retry_count = 0
@@ -321,16 +322,19 @@ class PlannerOrchestrator:
                 )
 
                 if result.status == ToolExecutionStatus.COMPLETED:
-                    return StepExecutionRecord(
-                        step_id=step.step_id,
-                        tool_name=step.tool,
-                        status=StepExecutionStatus.COMPLETED,
-                        started_at=started_at,
-                        finished_at=datetime.now(UTC).isoformat(),
-                        execution_time_ms=elapsed_ms,
-                        retry_count=retry_count,
-                        estimated_cost=step.estimated_cost,
-                        estimated_value=step.estimated_value,
+                    return (
+                        StepExecutionRecord(
+                            step_id=step.step_id,
+                            tool_name=step.tool,
+                            status=StepExecutionStatus.COMPLETED,
+                            started_at=started_at,
+                            finished_at=datetime.now(UTC).isoformat(),
+                            execution_time_ms=elapsed_ms,
+                            retry_count=retry_count,
+                            estimated_cost=step.estimated_cost,
+                            estimated_value=step.estimated_value,
+                        ),
+                        result,
                     )
                 else:
                     last_error_msg = (
@@ -352,17 +356,20 @@ class PlannerOrchestrator:
                 break
 
         elapsed_ms = max(0, int((time.perf_counter_ns() - start_ns) / 1_000_000))
-        return StepExecutionRecord(
-            step_id=step.step_id,
-            tool_name=step.tool,
-            status=StepExecutionStatus.FAILED,
-            started_at=started_at,
-            finished_at=datetime.now(UTC).isoformat(),
-            execution_time_ms=elapsed_ms,
-            error_message=last_error_msg,
-            retry_count=retry_count,
-            estimated_cost=step.estimated_cost,
-            estimated_value=step.estimated_value,
+        return (
+            StepExecutionRecord(
+                step_id=step.step_id,
+                tool_name=step.tool,
+                status=StepExecutionStatus.FAILED,
+                started_at=started_at,
+                finished_at=datetime.now(UTC).isoformat(),
+                execution_time_ms=elapsed_ms,
+                error_message=last_error_msg,
+                retry_count=retry_count,
+                estimated_cost=step.estimated_cost,
+                estimated_value=step.estimated_value,
+            ),
+            None,
         )
 
     def _topological_sort(
@@ -448,6 +455,18 @@ class PlannerOrchestrator:
         if state.parsed_email.attachments:
             return True
         return False
+
+    def _eval_has_image_attachments(self, state: AgentState) -> bool:
+        """Allow image-specific intelligence tools to be planned conditionally."""
+        if not state.parsed_email:
+            return False
+        return any(
+            attachment.content_type.lower().startswith("image/")
+            or attachment.filename.lower().endswith(
+                (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp")
+            )
+            for attachment in state.parsed_email.attachments
+        )
 
     def _eval_spf_failed(self, state: AgentState) -> bool:
         for ev in state.evidence.items:

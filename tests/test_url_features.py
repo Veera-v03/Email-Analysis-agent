@@ -100,7 +100,7 @@ def test_result_is_frozen() -> None:
     result = _extract(_components())
 
     with pytest.raises((ValidationError, TypeError)):
-        result.total_length = 0  # type: ignore[misc]
+        result.total_length = 0
 
 
 def test_result_rejects_extra_fields() -> None:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import time
 import uuid
+from collections.abc import Callable
 from typing import Any
 
 from src.utils.logging import get_logger
@@ -34,7 +35,12 @@ def get_system_metrics() -> dict[str, Any]:
 
     # Try standard library platform calls if available
     try:
-        load = os.getloadavg()
+        getloadavg: Callable[[], tuple[float, float, float]] | None = getattr(
+            os, "getloadavg", None
+        )
+        if getloadavg is None:
+            raise AttributeError("os.getloadavg is unavailable")
+        load = getloadavg()
         cpu_percent = round(load[0] * 10, 1)
     except (AttributeError, OSError):
         pass

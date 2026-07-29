@@ -177,10 +177,12 @@ def test_unified_result_is_frozen_and_rejects_unknown_fields() -> None:
     with pytest.raises(ValidationError):
         result.sender = SenderIdentity()
     with pytest.raises(ValidationError):
-        SenderAnalysisResult(
-            sender=SenderIdentity(),
-            addresses=AddressAnalysisResult(),
-            unexpected_field=True,
+        SenderAnalysisResult.model_validate(
+            {
+                "sender": SenderIdentity(),
+                "addresses": AddressAnalysisResult(),
+                "unexpected_field": True,
+            }
         )
 
 

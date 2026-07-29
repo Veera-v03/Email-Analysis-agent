@@ -1,73 +1,31 @@
 # Email Analysis Agent
 
-Email Analysis Agent is a deterministic, typed email-analysis platform. Phase 5
-is complete: existing parser, sender, URL, and attachment capabilities are
-available as reusable agent tools, coordinated by a framework-agnostic runtime.
-No LLM planner, scoring engine, or external intelligence API is included.
+Email Analysis Agent is a typed, evidence-driven platform for investigating suspicious email. It combines parsing, sender/URL/attachment analysis, OCR and QR inspection, optional threat intelligence, durable investigation memory, campaign correlation, weighted risk scoring, and explainable reports.
 
-## Implemented architecture
+## Architecture
 
-- **Foundation and parsing:** configuration, immutable email contracts, and
-  parser boundary protocols.
-- **Sender intelligence:** header, authentication, address, domain, and display
-  name observations through `SenderIntelligenceEngine`.
-- **URL intelligence:** extraction, normalization, structural analysis,
-  hyperlink comparison, Unicode, shortener, and anomaly observations.
-- **Attachment intelligence:** metadata, signature, entropy, hash, archive,
-  Office, PDF, executable, and deterministic reputation adapters.
-- **Agent ecosystem:** `AgentState`, `AgentTool`, `ToolRegistry`, canonical
-  `Evidence`, and `ToolExecutionEngine`.
-
-## Agent lifecycle
-
-```text
-AgentState
-  -> ToolExecutionEngine
-  -> ToolRegistry resolves requested AgentTools
-  -> tools execute sequentially against the latest immutable state
-  -> ToolResult records evidence, errors, and optional parsed email
-  -> AgentState records result, canonical evidence, and execution history
-  -> ExecutionResult returns final state and ExecutionSummary
+```mermaid
+flowchart LR
+  API[FastAPI API] --> Planner
+  Planner --> Engine[Execution Engine]
+  Engine --> Tools[Registered Agent Tools]
+  Tools --> Evidence[Canonical EvidenceCollection]
+  Evidence --> Memory[Durable tenant memory]
+  Evidence --> Reasoning[Reasoning + risk scoring]
+  Memory --> Reasoning
+  Reasoning --> Report[Explainability + FinalReport]
 ```
 
-The supplied tools are `ParserTool`, `SenderTool`, `URLTool`,
-`AttachmentTool`, and `ReportTool`. The engine is deliberately deterministic:
-the caller supplies the order and failure policy.
+## Features
 
-## Minimal usage
+- Sender authentication and infrastructure observations
+- URL, attachment, OCR, QR, and optional threat-intelligence enrichment
+- Tenant-isolated durable memory and historical/campaign correlation
+- Canonical evidence with explainable weighted risk contributions
+- FastAPI authentication, RBAC, audit records, correlation IDs, health, and metrics
+- JSON, Markdown, and HTML report renderers
 
-```python
-from src.analyzers.agent import ParserTool, ToolExecutionEngine, ToolRegistry, URLTool
-from src.models.agent import AgentState
-
-registry = ToolRegistry()
-registry.register(ParserTool())
-registry.register(URLTool())
-
-state = AgentState.create(metadata={"raw_email": raw_email_payload})
-result = ToolExecutionEngine(registry).execute(
-    state,
-    tools=["parser_tool", "url_tool"],
-)
-
-print(result.summary.tool_order)
-print(result.state.evidence.to_json())
-```
-
-## Project layout
-
-```text
-src/models/              immutable domain and agent contracts
-src/parsers/             email ingestion boundary contracts
-src/analyzers/sender/    sender intelligence pipeline
-src/analyzers/url/       URL intelligence pipeline
-src/analyzers/agent/     tools, attachments, registry, evidence, runtime
-src/utils/               operational and evidence utilities
-tests/                   unit, integration, and regression coverage
-docs/                    architecture, development, and phase reports
-```
-
-## Development
+## Quick start
 
 Python 3.13+ is required.
 
@@ -76,8 +34,45 @@ python -m pip install -e ".[dev]"
 python -m pytest
 python -m ruff check .
 python -m mypy src
+uvicorn src.api.main:app --reload
 ```
 
-See [architecture](docs/architecture.md), [development guide](docs/development.md),
-[tool development guide](docs/tool-development-guide.md), and the
-[Phase 5 completion report](docs/phase-5-completion-report.md).
+Set required production secrets before starting the API. See [configuration](docs/configuration.md) and [deployment](docs/deployment.md).
+
+## API example
+
+```bash
+curl -X POST http://localhost:8000/api/v1/investigate \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"subject":"Urgent payment","sender":"billing@example.test","body":"Review https://example.test"}'
+```
+
+The response contains classification, confidence, risk level, and the complete structured report.
+
+## Project layout
+
+```text
+src/api/                       HTTP API, authentication, RBAC
+src/analyzers/agent/           tools, registry, evidence adapters
+src/security_intelligence/     OCR, QR, IOC, campaign, threat-intel services
+src/memory/                    retrieval, learning, vector storage
+src/planner/                   planning, reasoning, scoring, reports
+docs/                          architecture and operational documentation
+tests/                         unit and integration coverage
+```
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [API guide](docs/api.md)
+- [Configuration](docs/configuration.md)
+- [Deployment and operations](docs/deployment.md)
+- [Developer guide](docs/development.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Security policy](SECURITY.md)
+- [Release notes](CHANGELOG.md)
+
+## Contributing and license
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). This project is released under the [MIT License](LICENSE).

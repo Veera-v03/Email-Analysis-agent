@@ -93,13 +93,13 @@ def test_hyperlink_observation_is_frozen() -> None:
         href="javascript:void(0)",
     )
     with pytest.raises(Exception):
-        obs.href = "other"  # type: ignore[misc]
+        obs.href = "other"
 
 
 def test_hyperlink_analysis_result_is_frozen() -> None:
     result = HyperlinkAnalysisResult()
     with pytest.raises(Exception):
-        result.observations = ()  # type: ignore[misc]
+        result.observations = ()
 
 
 def test_hyperlink_analysis_result_default_is_empty() -> None:
