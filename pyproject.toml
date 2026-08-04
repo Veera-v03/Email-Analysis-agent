@@ -45,3 +45,14 @@ ignore = ["E501", "N802", "N818", "E402", "UP046", "F401", "W291"]
 python_version = "3.13"
 strict = true
 packages = ["src"]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+extraPaths = ["."]
+
+[tool.pyrefly]
+project_root = "."
+search_path = ["."]
+
+

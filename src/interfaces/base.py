@@ -5,7 +5,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Protocol, runtime_checkable
 
+# pyrefly: ignore [missing-import]
 from src.common.models import ComponentHealthDTO
+# pyrefly: ignore [missing-import]
 from src.config.settings import ScamONSettings
 
 
