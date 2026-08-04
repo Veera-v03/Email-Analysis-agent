@@ -16,8 +16,8 @@ from src.models.agent import (
     ToolResult,
 )
 from src.planner.explainability import ExplainabilityEngine
-from src.planner.investigator import MultiStepInvestigator
 from src.planner.interfaces.planner import Planner
+from src.planner.investigator import MultiStepInvestigator
 from src.planner.models.planner import (
     ExecutionPlan,
     ExecutionStep,

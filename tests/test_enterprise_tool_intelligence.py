@@ -80,7 +80,9 @@ def test_sender_tool_appends_enterprise_infrastructure_evidence() -> None:
 
     assert result.status is ToolExecutionStatus.COMPLETED
     evidence = next(
-        item for item in result.evidence if item.category == "sender_enterprise_virustotal"
+        item
+        for item in result.evidence
+        if item.category == "sender_enterprise_virustotal"
     )
     assert evidence.metadata["domain"] == "example.test"
     assert evidence.metadata["severity"] == "high"
@@ -89,9 +91,7 @@ def test_sender_tool_appends_enterprise_infrastructure_evidence() -> None:
 
 def test_url_tool_appends_enterprise_url_reputation_evidence() -> None:
     provider = StaticProvider(malicious=True)
-    tool = URLTool(
-        enterprise_intelligence=EnterpriseIntelligenceService((provider,))
-    )
+    tool = URLTool(enterprise_intelligence=EnterpriseIntelligenceService((provider,)))
 
     result = tool.execute(_state("Visit https://example.test/login now."))
 

@@ -57,6 +57,8 @@ def PlannerMetadata_Mock() -> PlannerMetadata:
 
 
 class TestSenderTool(AgentTool[AgentState]):
+    __test__ = False
+
     def __init__(self) -> None:
         super().__init__(
             ToolMetadata(
@@ -81,6 +83,8 @@ class TestSenderTool(AgentTool[AgentState]):
 
 
 class TestURLTool(AgentTool[AgentState]):
+    __test__ = False
+
     def __init__(self) -> None:
         super().__init__(
             ToolMetadata(
@@ -106,6 +110,8 @@ class TestURLTool(AgentTool[AgentState]):
 
 
 class TestAttachmentTool(AgentTool[AgentState]):
+    __test__ = False
+
     def __init__(self) -> None:
         super().__init__(
             ToolMetadata(
@@ -130,6 +136,8 @@ class TestAttachmentTool(AgentTool[AgentState]):
 
 
 class TestFailingRetryTool(AgentTool[AgentState]):
+    __test__ = False
+
     def __init__(self) -> None:
         super().__init__(
             ToolMetadata(

@@ -102,10 +102,10 @@ class MemoryRetrievalService:
         top_k: int = 5,
     ) -> list[MemorySearchResult]:
         """Retrieve historical investigation runs matching email attributes."""
-        query_str = f"{subject} {sender} {body_summary or ''}"
+        query_str = f"{subject} {sender} {body_summary or ''}".strip()[:1024]
         return self.query(
             MemoryQuery(
-                query_text=query_str,
+                query_text=query_str or "investigation query",
                 memory_type=MemoryType.INVESTIGATION,
                 top_k=top_k,
                 min_confidence=0.3,
@@ -119,10 +119,10 @@ class MemoryRetrievalService:
         top_k: int = 5,
     ) -> list[MemorySearchResult]:
         """Retrieve past evidence items matching category and description."""
-        query_str = f"{category} {description}"
+        query_str = f"{category} {description}".strip()[:1024]
         return self.query(
             MemoryQuery(
-                query_text=query_str,
+                query_text=query_str or "evidence query",
                 memory_type=MemoryType.EVIDENCE,
                 top_k=top_k,
                 min_confidence=0.3,

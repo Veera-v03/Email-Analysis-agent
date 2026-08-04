@@ -14,16 +14,16 @@ from src.security_intelligence.models.security_report import (
 from src.security_intelligence.ocr.ocr_service import OCRService
 from src.security_intelligence.qr.qr_service import QRService
 from src.security_intelligence.risk.risk_enrichment import RiskEnrichmentService
+from src.security_intelligence.threat_intel.framework import (
+    ThreatIntelligenceFramework,
+    ThreatIntelObservation,
+    ThreatIntelProvider,
+    ThreatIntelTargetType,
+)
 from src.security_intelligence.threat_intel.threat_intel_service import (
     IThreatIntelProvider,
     LocalThreatIntelProvider,
     ThreatIntelService,
-)
-from src.security_intelligence.threat_intel.framework import (
-    ThreatIntelObservation,
-    ThreatIntelProvider,
-    ThreatIntelTargetType,
-    ThreatIntelligenceFramework,
 )
 
 __all__ = [

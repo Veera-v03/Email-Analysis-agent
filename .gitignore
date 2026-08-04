@@ -16,6 +16,9 @@ env/
 
 # Local configuration and secrets
 .env
+credentials.json
+token.json
+
 
 # IDE and operating-system files
 .vscode/

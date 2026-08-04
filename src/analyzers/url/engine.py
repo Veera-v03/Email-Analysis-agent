@@ -18,8 +18,8 @@ from src.analyzers.url.shortener import DeterministicUrlShortenerDetector
 from src.analyzers.url.unicode_analysis import DeterministicUrlUnicodeAnalyzer
 from src.models.email import EmailInput
 from src.models.url import (
-    FinalUrlIntelligence,
     ExtractedUrl,
+    FinalUrlIntelligence,
     HtmlContext,
     HyperlinkObservation,
     NormalizedUrl,
@@ -29,10 +29,10 @@ from src.models.url import (
     ReputationResult,
     SuspiciousPatternCategory,
     SuspiciousPatternMatch,
-    UrlShortenerAnalysis,
-    UrlUnicodeAnalysis,
     UrlEvidence,
     UrlExtractionSource,
+    UrlShortenerAnalysis,
+    UrlUnicodeAnalysis,
 )
 
 

@@ -146,6 +146,19 @@ class GroqProvider(LLMProvider):
 
                 # Transient errors or rate limit errors
                 if response.status_code == 429 or 500 <= response.status_code < 600:
+                    retry_after = response.headers.get("Retry-After")
+                    if (
+                        response.status_code == 429
+                        and retry_after
+                        and retry_after.isdigit()
+                    ):
+                        sleep_time = min(int(retry_after), 10)
+                        logger.warning(
+                            "Groq API 429 rate limit hit. Respecting Retry-After header: waiting %s s",
+                            sleep_time,
+                        )
+                        time.sleep(sleep_time)
+
                     last_error = ProviderError(
                         f"Groq API transient/rate-limiting error "
                         f"(status code {response.status_code}).",

@@ -169,9 +169,7 @@ class URLTool(AgentTool[AgentState]):
             evidence.append(
                 ToolEvidence(
                     category="url_enterprise_diagnostic",
-                    detail=(
-                        f"{diagnostic.provider_name}: {diagnostic.reason}"
-                    ),
+                    detail=(f"{diagnostic.provider_name}: {diagnostic.reason}"),
                     metadata={
                         "severity": EvidenceSeverity.INFO.value,
                         "provider": diagnostic.provider_name,

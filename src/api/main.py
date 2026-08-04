@@ -229,9 +229,9 @@ class TokenResponse(BaseModel):
 
 
 class SubmissionRequest(BaseModel):
-    subject: str = Field(..., max_length=998)
-    sender: str = Field(..., max_length=320)
-    body: str = Field(..., max_length=10000)
+    subject: str = Field(..., min_length=1, max_length=998)
+    sender: str = Field(..., min_length=1, max_length=998)
+    body: str = Field(..., min_length=1, max_length=2000000)
     strategy_override: str | None = Field(default=None)
 
 
@@ -319,6 +319,42 @@ def login(
     )
 
 
+@app.post(
+    "/api/v1/auth/demo-token", response_model=TokenResponse, tags=["Authentication"]
+)
+def demo_token(
+    org_repo: OrganizationRepository = Depends(get_org_repo),
+    user_repo: UserRepository = Depends(get_user_repo),
+) -> TokenResponse:
+    """Issue an instant demo JWT token for interactive dashboard sessions."""
+    org_id = "org_scamshield_demo"
+    org = org_repo.get(org_id)
+    if not org:
+        org = org_repo.create("ScamShield Demo Tenant", org_id=org_id)
+
+    user = user_repo.get_by_username("analyst_demo")
+    if not user:
+        user = user_repo.create(
+            org_id=org["id"],
+            username="analyst_demo",
+            password_hash=hash_password("demopassword123"),
+            roles=["admin", "analyst"],
+            user_id="user_analyst_demo",
+        )
+
+    payload = {
+        "sub": user["id"],
+        "org_id": user["org_id"],
+        "roles": user["roles"],
+    }
+    access_token = create_jwt_token(payload)
+    refresh_token = create_jwt_token(payload)
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
+
+
 # 3. Investigation Submission API
 @app.post("/api/v1/investigate", tags=["Investigations"])
 def run_investigation(
@@ -334,16 +370,29 @@ def run_investigation(
 
     # Pre-parse Email Input
     from datetime import UTC, datetime
+    from email.utils import parseaddr
+
+    _, parsed_email = parseaddr(req.sender)
+    clean_sender = (
+        parsed_email if parsed_email and len(parsed_email) >= 3 else req.sender.strip()
+    )
+    if len(clean_sender) > 320:
+        clean_sender = clean_sender[:320]
+    if not clean_sender:
+        clean_sender = "unknown@external.com"
+
+    clean_subject = req.subject.strip()[:998] or "(No Subject)"
+    clean_body = req.body or "(Empty body)"
 
     email_input = EmailInput(
         header=EmailHeader(
             message_id=f"<{uuid.uuid4().hex}@enterprise.api>",
-            sender=req.sender,
+            sender=clean_sender,
             recipients=["target@enterprise.com"],
-            subject=req.subject,
+            subject=clean_subject,
             sent_at=datetime.now(UTC).isoformat(),
         ),
-        body_text=req.body,
+        body_text=clean_body,
     )
 
     # Initialize state
@@ -357,10 +406,10 @@ def run_investigation(
     # Instantiate reasoning & investigator engines with proper wiring
     from src.analyzers.agent.attachments import AttachmentTool
     from src.analyzers.agent.registry import ToolRegistry
-    from src.analyzers.agent.tools.ocr_tool import OCRTool
     from src.analyzers.agent.tools.campaign_correlation_tool import (
         CampaignCorrelationTool,
     )
+    from src.analyzers.agent.tools.ocr_tool import OCRTool
     from src.analyzers.agent.tools.parser_tool import ParserTool
     from src.analyzers.agent.tools.qr_tool import QRTool
     from src.analyzers.agent.tools.report_tool import ReportTool
@@ -407,7 +456,7 @@ def run_investigation(
     )
     orchestrator = PlannerOrchestrator(registry)
 
-    investigator = MultiStepInvestigator(planner, orchestrator)
+    investigator = MultiStepInvestigator(planner, orchestrator, max_iterations=10)
     memory_retrieval, learning_pipeline = get_memory_services(org_id)
     reasoning_engine = ReasoningEngine(memory_retrieval=memory_retrieval)
     explain_engine = ExplainabilityEngine()
@@ -552,7 +601,103 @@ def create_user(
     return new_user
 
 
-# 9. Swagger and ReDoc Client UI endpoints
+# --- Google OAuth & Gmail Integration Endpoints ---
+
+
+@app.get("/auth/google/login", tags=["Gmail Integration"])
+def google_login(request: Request) -> Response:
+    """Initiate Google OAuth 2.0 consent flow."""
+    from fastapi.responses import RedirectResponse
+
+    from src.services.gmail_service import gmail_service
+
+    # Build callback redirect URI
+    redirect_uri = "http://localhost:8000/auth/google/callback"
+
+    try:
+        auth_url = gmail_service.get_authorization_url(redirect_uri)
+        return RedirectResponse(auth_url)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate Google auth URL: {e}"
+        )
+
+
+@app.get("/auth/google/callback", tags=["Gmail Integration"])
+def google_callback(
+    request: Request, code: str | None = None, error: str | None = None
+) -> Response:
+    """Handle Google OAuth 2.0 callback redirect."""
+    import urllib.parse
+
+    from fastapi.responses import RedirectResponse
+
+    from src.services.gmail_service import gmail_service
+
+    if error:
+        return RedirectResponse(f"/?gmail_error={error}")
+
+    if not code:
+        raise HTTPException(status_code=400, detail="Missing authorization code.")
+
+    redirect_uri = "http://localhost:8000/auth/google/callback"
+
+    try:
+        gmail_service.exchange_code_for_tokens(code, redirect_uri)
+        return RedirectResponse("/?gmail_connected=true")
+    except Exception as e:
+        logger.error("OAuth callback error: %s", e)
+        err_msg = urllib.parse.quote(str(e))
+        return RedirectResponse(f"/?gmail_error={err_msg}")
+
+
+@app.get("/api/v1/gmail/status", tags=["Gmail Integration"])
+def get_gmail_status() -> dict[str, Any]:
+    """Check if Gmail OAuth connection is active."""
+    from src.services.gmail_service import gmail_service
+
+    token = gmail_service.get_valid_access_token()
+    return {
+        "connected": token is not None,
+        "credentials_configured": gmail_service.credentials_path.exists(),
+    }
+
+
+@app.get("/api/v1/gmail/fetch-last-10", tags=["Gmail Integration"])
+def fetch_last_10_gmail_messages() -> list[dict[str, Any]]:
+    """Fetch the latest 10 emails from the connected Gmail inbox."""
+    from src.services.gmail_service import gmail_service
+
+    try:
+        return gmail_service.fetch_last_10_emails()
+    except PermissionError as pe:
+        raise HTTPException(status_code=401, detail=str(pe))
+    except Exception as e:
+        logger.error("Error fetching Gmail messages: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch emails: {e}")
+
+
+@app.post("/api/v1/gmail/disconnect", tags=["Gmail Integration"])
+def disconnect_gmail() -> dict[str, Any]:
+    """Disconnect Gmail session by removing token.json."""
+    from src.services.gmail_service import gmail_service
+
+    if gmail_service.token_path.exists():
+        gmail_service.token_path.unlink()
+    return {"status": "disconnected"}
+
+
+# 9. Main Cyber Security Dashboard & API documentation endpoints
+@app.get("/", include_in_schema=False)
+def get_cyber_ui() -> Response:
+    """Render the main Cyber Security Command Center web dashboard UI page."""
+    from fastapi.responses import HTMLResponse
+
+    from src.api.ui import render_cyber_ui_html
+
+    return HTMLResponse(render_cyber_ui_html())
+
+
 @app.get("/docs", include_in_schema=False)
 def get_swagger_ui() -> Response:
     """Render the standard Swagger UI client page."""

@@ -187,6 +187,17 @@ class MemoryQuery(BaseModel):
     time_range_start: StrictStr | None = Field(default=None, max_length=64)
     time_range_end: StrictStr | None = Field(default=None, max_length=64)
 
+    @model_validator(mode="before")
+    @classmethod
+    def preprocess_memory_query(cls, data: Any) -> Any:
+        """Truncate query_text to max 1024 chars to avoid validation errors."""
+        if not isinstance(data, dict):
+            return data
+        qtext = data.get("query_text")
+        if isinstance(qtext, str) and len(qtext) > 1024:
+            data["query_text"] = qtext[:1024]
+        return data
+
 
 class MemorySearchResult(BaseModel):
     """Single matching record returned from vector or hybrid retrieval."""

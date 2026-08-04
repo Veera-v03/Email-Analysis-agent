@@ -184,9 +184,7 @@ class SenderTool(AgentTool[AgentState]):
             evidence.append(
                 ToolEvidence(
                     category="sender_enterprise_diagnostic",
-                    detail=(
-                        f"{diagnostic.provider_name}: {diagnostic.reason}"
-                    ),
+                    detail=(f"{diagnostic.provider_name}: {diagnostic.reason}"),
                     metadata={
                         "severity": EvidenceSeverity.INFO.value,
                         "provider": diagnostic.provider_name,

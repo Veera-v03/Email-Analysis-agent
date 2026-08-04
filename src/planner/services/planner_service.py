@@ -238,10 +238,35 @@ class PlannerService(Planner):
             )
 
         except Exception as e:
-            logger.error(
-                "PlannerService error calling LLM provider: %s", e, exc_info=True
-            )
+            logger.warning("PlannerService LLM provider error (%s).", e)
             latency_ms = max(0, int((time.perf_counter_ns() - start_ns) / 1_000_000))
+
+            # If rate limit (429) or transient provider error occurs, provide deterministic fallback plan
+            err_str = str(e).lower()
+            if (
+                "429" in err_str
+                or "rate-limiting" in err_str
+                or "rate limit" in err_str
+                or "transient" in err_str
+            ):
+                fallback_plan = self._create_fallback_plan(context)
+                metadata = PlannerMetadata(
+                    provider="fallback_rule_engine",
+                    model="deterministic-fallback-v1",
+                    latency_ms=latency_ms,
+                    timestamp=datetime.now(UTC).isoformat(),
+                    additional_metadata={
+                        "error_type": e.__class__.__name__,
+                        "error_details": str(e)[:512],
+                    },
+                )
+                return PlanningResult(
+                    plan=fallback_plan,
+                    metadata=metadata,
+                    usage=PlannerUsage(),
+                    success=True,
+                )
+
             metadata = PlannerMetadata(
                 provider="groq",
                 model="unknown",
@@ -256,3 +281,63 @@ class PlannerService(Planner):
                 success=False,
                 error_message=str(e)[:1024],
             )
+
+    def _create_fallback_plan(self, context: Any = None) -> ExecutionPlan:
+        """Construct a deterministic full-coverage investigation plan using registered tools."""
+        from src.planner.models.planner import (
+            ExecutionPlan,
+            ExecutionStep,
+            ExecutionStrategy,
+        )
+
+        # If tools have already executed in history, complete the investigation with zero remaining steps
+        if context and context.execution_history:
+            return ExecutionPlan(
+                strategy=ExecutionStrategy.COMPREHENSIVE,
+                goal="Deterministic investigation scan completed.",
+                steps=(),
+                confidence=0.95,
+            )
+
+        candidate_tools = [
+            ("parser_tool", "Parse header and email payload structure."),
+            ("sender_tool", "Verify sender domain authentication SPF/DKIM."),
+            ("url_tool", "Inspect embedded links for typosquatting."),
+            ("attachment_tool", "Inspect attachments if present."),
+            ("ocr_tool", "Extract text from image attachments."),
+            ("qr_tool", "Scan embedded QR code payloads."),
+            ("threat_intelligence_tool", "Check threat intelligence databases."),
+            ("campaign_correlation_tool", "Correlate with campaign memory."),
+            ("report_tool", "Compile final explainable evidence report."),
+        ]
+
+        steps: list[ExecutionStep] = []
+        priority = 1
+        for tool_name, reason in candidate_tools:
+            if self.registry.get(tool_name) is not None:
+                steps.append(
+                    ExecutionStep(
+                        tool=tool_name,
+                        priority=priority,
+                        reason=reason,
+                        step_id=f"{tool_name}_{priority}",
+                    )
+                )
+                priority += 1
+
+        if not steps:
+            steps.append(
+                ExecutionStep(
+                    tool="parser_tool",
+                    priority=1,
+                    reason="Parse email structure.",
+                    step_id="parser_tool_1",
+                )
+            )
+
+        return ExecutionPlan(
+            strategy=ExecutionStrategy.COMPREHENSIVE,
+            goal="Comprehensive security scan via deterministic fallback rules.",
+            steps=tuple(steps),
+            confidence=0.85,
+        )
