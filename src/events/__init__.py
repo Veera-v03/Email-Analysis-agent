@@ -10,8 +10,10 @@ from src.events.audit_events import (
 from src.events.base_event import BaseEvent
 from src.events.email_events import (
     EmailIngestedEvent,
-    EmailParsedEvent,
     EmailRenderedEvent,
+)
+from src.events.email_events import (
+    EmailParsedEvent as LegacyEmailParsedEvent,
 )
 from src.events.iam_events import (
     PermissionDeniedEvent,
@@ -19,6 +21,17 @@ from src.events.iam_events import (
     UserLoggedInEvent,
     UserLoggedOutEvent,
     UserLoginFailedEvent,
+)
+from src.events.ingestion_events import (
+    EmailDownloadedEvent,
+    EmailReceivedEvent,
+    MailboxSyncCompletedEvent,
+    MailboxSyncFailedEvent,
+)
+from src.events.parsing_events import (
+    AttachmentExtractedEvent,
+    EmailParsedEvent,
+    EmailParsingFailedEvent,
 )
 from src.events.security_events import (
     AuthEvaluatedEvent,
@@ -33,13 +46,19 @@ from src.events.system_events import (
 
 __all__ = [
     "ActionExecutedEvent",
+    "AttachmentExtractedEvent",
     "AuthEvaluatedEvent",
     "BaseEvent",
     "ComponentDegradedEvent",
+    "EmailDownloadedEvent",
     "EmailIngestedEvent",
     "EmailParsedEvent",
+    "EmailParsingFailedEvent",
     "EmailRenderedEvent",
     "IntelEnrichedEvent",
+    "LegacyEmailParsedEvent",
+    "MailboxSyncCompletedEvent",
+    "MailboxSyncFailedEvent",
     "PermissionDeniedEvent",
     "PolicyTriggeredEvent",
     "RiskScoredEvent",

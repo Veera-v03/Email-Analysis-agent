@@ -10,7 +10,16 @@ from src.database.base import (
 )
 from src.database.engine import build_async_engine, get_database_url
 from src.database.health import DatabaseHealthChecker
-from src.database.models import Incident, Tenant, TenantPolicy, User
+from src.database.models import (
+    EmailAccount,
+    EmailMetadataRecord,
+    Incident,
+    MailboxSyncState,
+    RawEmail,
+    Tenant,
+    TenantPolicy,
+    User,
+)
 from src.database.module import DatabaseModule, register_database_module
 from src.database.session import (
     build_async_session_factory,
@@ -23,7 +32,11 @@ __all__ = [
     "Base",
     "DatabaseHealthChecker",
     "DatabaseModule",
+    "EmailAccount",
+    "EmailMetadataRecord",
     "Incident",
+    "MailboxSyncState",
+    "RawEmail",
     "SoftDeleteMixin",
     "Tenant",
     "TenantIsolationMixin",

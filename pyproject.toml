@@ -53,6 +53,10 @@ python_version = "3.13"
 strict = true
 packages = ["src"]
 
+[[tool.mypy.overrides]]
+module = "selectolax.*"
+ignore_missing_imports = true
+
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
