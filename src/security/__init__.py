@@ -1,29 +1,67 @@
-"""Security module exposing authentication helper functions and RBAC access checks."""
+"""Identity & Access Management (IAM) and security infrastructure package."""
 
-from src.security.auth import (
-    create_jwt_token,
-    decode_jwt_token,
-    generate_api_key,
-    hash_password,
-    revoke_token,
-    verify_api_key,
-    verify_password,
+from __future__ import annotations
+
+from src.security.auth_service import AuthenticationService
+from src.security.dependencies import (
+    get_authorization_service,
+    get_current_user,
+    get_token_manager,
+    require_permission,
+    require_role,
+    verify_tenant_access,
 )
-from src.security.rbac import (
-    get_role_permissions,
-    verify_rbac_permission,
-    verify_tenant_isolation,
+from src.security.exceptions import (
+    AccountLockedError,
+    AuthenticationError,
+    AuthorizationError,
+    InvalidTokenError,
+    SecurityError,
+    TokenExpiredError,
 )
+from src.security.keys import RSAKeyManager
+from src.security.models import (
+    ROLE_PERMISSIONS_MAP,
+    AuthenticatedUser,
+    LoginRequestDTO,
+    Permission,
+    RefreshTokenRequestDTO,
+    Role,
+    TokenPairDTO,
+    TokenPayloadDTO,
+)
+from src.security.module import IAMModule, register_iam_module
+from src.security.password import PasswordHasher
+from src.security.rbac import AuthorizationService
+from src.security.token_manager import TokenManager, TokenRevocationManager
 
 __all__ = [
-    "hash_password",
-    "verify_password",
-    "generate_api_key",
-    "verify_api_key",
-    "create_jwt_token",
-    "decode_jwt_token",
-    "revoke_token",
-    "get_role_permissions",
-    "verify_rbac_permission",
-    "verify_tenant_isolation",
+    "AccountLockedError",
+    "AuthenticatedUser",
+    "AuthenticationError",
+    "AuthenticationService",
+    "AuthorizationError",
+    "AuthorizationService",
+    "IAMModule",
+    "InvalidTokenError",
+    "LoginRequestDTO",
+    "PasswordHasher",
+    "Permission",
+    "ROLE_PERMISSIONS_MAP",
+    "RSAKeyManager",
+    "RefreshTokenRequestDTO",
+    "Role",
+    "SecurityError",
+    "TokenExpiredError",
+    "TokenManager",
+    "TokenPairDTO",
+    "TokenPayloadDTO",
+    "TokenRevocationManager",
+    "get_authorization_service",
+    "get_current_user",
+    "get_token_manager",
+    "register_iam_module",
+    "require_permission",
+    "require_role",
+    "verify_tenant_access",
 ]

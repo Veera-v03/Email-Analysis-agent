@@ -53,7 +53,7 @@ class OrganizationRepository:
             conn.close()
 
 
-class UserRepository:
+class LegacyUserRepository:
     """Handles CRUD persistence operations for User credentials and role settings."""
 
     def __init__(self, client: DatabaseClient | None = None) -> None:
@@ -130,7 +130,6 @@ class UserRepository:
         if not updates:
             return False
 
-        # Prepare queries dynamically
         fields = []
         params = []
         for k, v in updates.items():

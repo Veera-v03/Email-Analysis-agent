@@ -25,7 +25,9 @@ from src.database.repositories import (
     InvestigationMetadataRepository,
     OrganizationRepository,
     PlannerMetricsRepository,
-    UserRepository,
+)
+from src.database.repositories import (
+    LegacyUserRepository as UserRepository,
 )
 from src.models.agent import AgentState
 from src.models.email import EmailHeader, EmailInput

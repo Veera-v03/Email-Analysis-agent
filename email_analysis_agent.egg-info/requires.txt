@@ -5,6 +5,10 @@ fastapi>=0.115.0
 uvicorn>=0.34.0
 pyjwt>=2.10.0
 requests>=2.32.0
+sqlalchemy>=2.0.38
+asyncpg>=0.30.0
+alembic>=1.14.1
+psycopg[binary]>=3.2.4
 
 [dev]
 httpx>=0.28.0

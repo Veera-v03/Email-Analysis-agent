@@ -1,24 +1,40 @@
-"""Database module exposing raw client connection utilities and typed repositories."""
+"""Database and persistence package for ScamON Enterprise."""
 
-from src.database.db_client import DatabaseClient, db_client
-from src.database.repositories import (
-    AnalyticsRepository,
-    APIKeyRepository,
-    AuditLogRepository,
-    InvestigationMetadataRepository,
-    OrganizationRepository,
-    PlannerMetricsRepository,
-    UserRepository,
+from __future__ import annotations
+
+from src.database.base import (
+    Base,
+    SoftDeleteMixin,
+    TenantIsolationMixin,
+    TimestampMixin,
+)
+from src.database.engine import build_async_engine, get_database_url
+from src.database.health import DatabaseHealthChecker
+from src.database.models import Incident, Tenant, TenantPolicy, User
+from src.database.module import DatabaseModule, register_database_module
+from src.database.session import (
+    build_async_session_factory,
+    get_async_session,
+    get_session_context,
+    set_session_tenant_id,
 )
 
 __all__ = [
-    "DatabaseClient",
-    "db_client",
-    "OrganizationRepository",
-    "UserRepository",
-    "APIKeyRepository",
-    "AuditLogRepository",
-    "InvestigationMetadataRepository",
-    "PlannerMetricsRepository",
-    "AnalyticsRepository",
+    "Base",
+    "DatabaseHealthChecker",
+    "DatabaseModule",
+    "Incident",
+    "SoftDeleteMixin",
+    "Tenant",
+    "TenantIsolationMixin",
+    "TenantPolicy",
+    "TimestampMixin",
+    "User",
+    "build_async_engine",
+    "build_async_session_factory",
+    "get_async_session",
+    "get_database_url",
+    "get_session_context",
+    "register_database_module",
+    "set_session_tenant_id",
 ]

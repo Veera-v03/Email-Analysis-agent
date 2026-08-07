@@ -15,7 +15,12 @@ from fastapi.testclient import TestClient
 from src.api.main import app
 from src.config.enterprise_config import settings
 from src.database.db_client import db_client
-from src.database.repositories import OrganizationRepository, UserRepository
+from src.database.repositories import (
+    LegacyUserRepository as UserRepository,
+)
+from src.database.repositories import (
+    OrganizationRepository,
+)
 from src.security.auth import create_jwt_token, hash_password
 
 

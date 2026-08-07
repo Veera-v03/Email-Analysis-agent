@@ -13,6 +13,13 @@ from src.events.email_events import (
     EmailParsedEvent,
     EmailRenderedEvent,
 )
+from src.events.iam_events import (
+    PermissionDeniedEvent,
+    TokenRefreshedEvent,
+    UserLoggedInEvent,
+    UserLoggedOutEvent,
+    UserLoginFailedEvent,
+)
 from src.events.security_events import (
     AuthEvaluatedEvent,
     IntelEnrichedEvent,
@@ -33,9 +40,14 @@ __all__ = [
     "EmailParsedEvent",
     "EmailRenderedEvent",
     "IntelEnrichedEvent",
+    "PermissionDeniedEvent",
     "PolicyTriggeredEvent",
     "RiskScoredEvent",
     "SecurityAuditEvent",
     "SystemShutdownEvent",
     "SystemStartedEvent",
+    "TokenRefreshedEvent",
+    "UserLoggedInEvent",
+    "UserLoggedOutEvent",
+    "UserLoginFailedEvent",
 ]

@@ -15,7 +15,9 @@ from src.database.repositories import (
     APIKeyRepository,
     AuditLogRepository,
     OrganizationRepository,
-    UserRepository,
+)
+from src.database.repositories import (
+    LegacyUserRepository as UserRepository,
 )
 from src.security.auth import (
     create_jwt_token,

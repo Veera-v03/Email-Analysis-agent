@@ -7,6 +7,7 @@ from typing import Protocol, runtime_checkable
 
 # pyrefly: ignore [missing-import]
 from src.common.models import ComponentHealthDTO
+
 # pyrefly: ignore [missing-import]
 from src.config.settings import ScamONSettings
 

@@ -12,6 +12,10 @@ Requires-Dist: fastapi>=0.115.0
 Requires-Dist: uvicorn>=0.34.0
 Requires-Dist: pyjwt>=2.10.0
 Requires-Dist: requests>=2.32.0
+Requires-Dist: sqlalchemy>=2.0.38
+Requires-Dist: asyncpg>=0.30.0
+Requires-Dist: alembic>=1.14.1
+Requires-Dist: psycopg[binary]>=3.2.4
 Provides-Extra: dev
 Requires-Dist: httpx>=0.28.0; extra == "dev"
 Requires-Dist: mypy>=1.14; extra == "dev"

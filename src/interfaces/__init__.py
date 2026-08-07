@@ -11,13 +11,25 @@ from src.interfaces.base import (
 from src.interfaces.event_handler import IEventHandler
 from src.interfaces.event_publisher import IEventPublisher
 from src.interfaces.event_subscriber import IEventSubscriber
+from src.interfaces.repositories import (
+    IBaseRepository,
+    IIncidentRepository,
+    ITenantPolicyRepository,
+    ITenantRepository,
+    IUserRepository,
+)
 
 __all__ = [
+    "IBaseRepository",
     "IConfigurable",
     "IEventHandler",
     "IEventPublisher",
     "IEventSubscriber",
     "IHealthCheckable",
+    "IIncidentRepository",
     "IModule",
     "IServiceContract",
+    "ITenantPolicyRepository",
+    "ITenantRepository",
+    "IUserRepository",
 ]
