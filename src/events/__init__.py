@@ -43,6 +43,10 @@ from src.events.system_events import (
     SystemShutdownEvent,
     SystemStartedEvent,
 )
+from src.events.transmission_events import (
+    HeaderAnalysisCompletedEvent,
+    HeaderAnomalyDetectedEvent,
+)
 
 __all__ = [
     "ActionExecutedEvent",
@@ -55,6 +59,8 @@ __all__ = [
     "EmailParsedEvent",
     "EmailParsingFailedEvent",
     "EmailRenderedEvent",
+    "HeaderAnalysisCompletedEvent",
+    "HeaderAnomalyDetectedEvent",
     "IntelEnrichedEvent",
     "LegacyEmailParsedEvent",
     "MailboxSyncCompletedEvent",
