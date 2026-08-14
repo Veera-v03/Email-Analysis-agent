@@ -1,0 +1,28 @@
+Evaluate the following Email Risk Assessment and construct an AI Decision Plan:
+
+[INCIDENT CONTEXT]
+Message ID: {message_id}
+Consolidated Risk Score: {risk_score} / 100
+Verdict: {verdict}
+Recommended Action: {recommended_action}
+Overall Confidence: {overall_confidence}
+Threat Categories: {threat_categories}
+
+[RISK EVIDENCE]
+{evidence_summary}
+
+[MITRE ATT&CK TECHNIQUES]
+{mitre_techniques}
+
+[SOC RECOMMENDED MITIGATIONS]
+{soc_recommendations}
+
+Produce a JSON object with keys:
+- executive_summary
+- technical_summary
+- analyst_explanation
+- attack_summary
+- business_impact
+- recommended_actions (list of strings)
+- automation_candidates (list of strings)
+- limitations (list of strings)

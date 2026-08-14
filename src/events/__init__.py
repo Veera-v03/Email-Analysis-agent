@@ -33,6 +33,11 @@ from src.events.parsing_events import (
     EmailParsedEvent,
     EmailParsingFailedEvent,
 )
+from src.events.pipeline_events import (
+    PipelineCompletedEvent,
+    PipelineFailedEvent,
+    PipelineStartedEvent,
+)
 from src.events.security_events import (
     AuthEvaluatedEvent,
     IntelEnrichedEvent,
@@ -58,6 +63,7 @@ __all__ = [
     "EmailIngestedEvent",
     "EmailParsedEvent",
     "EmailParsingFailedEvent",
+    "EmailReceivedEvent",
     "EmailRenderedEvent",
     "HeaderAnalysisCompletedEvent",
     "HeaderAnomalyDetectedEvent",
@@ -66,6 +72,9 @@ __all__ = [
     "MailboxSyncCompletedEvent",
     "MailboxSyncFailedEvent",
     "PermissionDeniedEvent",
+    "PipelineCompletedEvent",
+    "PipelineFailedEvent",
+    "PipelineStartedEvent",
     "PolicyTriggeredEvent",
     "RiskScoredEvent",
     "SecurityAuditEvent",

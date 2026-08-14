@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 from src.config.enterprise_config import settings
 from src.utils.logging import get_logger
@@ -156,6 +158,90 @@ class DatabaseClient:
         except Exception as e:
             logger.error("Failed to initialize database schema: %s", e)
             raise e
+        finally:
+            conn.close()
+
+    def get_tenant_investigation_stats(
+        self, tenant_id: str, time_window_hours: int = 24
+    ) -> dict[str, Any]:
+        """Query tenant-isolated investigation aggregate metrics from investigations table."""
+        conn = self.get_connection()
+        try:
+            # Total analyzed
+            row = conn.execute(
+                "SELECT count(*) as total, avg(duration_ms) as avg_latency FROM investigations WHERE org_id = ?;",
+                (tenant_id,),
+            ).fetchone()
+            total_analyzed = row["total"] if row and row["total"] else 0
+            avg_latency = (
+                float(row["avg_latency"])
+                if row and row["avg_latency"] is not None
+                else 0.0
+            )
+
+            # Verdict breakdown
+            verdict_rows = conn.execute(
+                "SELECT verdict, count(*) as cnt FROM investigations WHERE org_id = ? GROUP BY verdict;",
+                (tenant_id,),
+            ).fetchall()
+            verdict_breakdown = {r["verdict"]: r["cnt"] for r in verdict_rows}
+
+            # Total threats
+            threats_row = conn.execute(
+                "SELECT count(*) as cnt FROM investigations WHERE org_id = ? AND verdict IN ('MALICIOUS', 'SUSPICIOUS');",
+                (tenant_id,),
+            ).fetchone()
+            total_threats = threats_row["cnt"] if threats_row else 0
+
+            # Top threat senders
+            sender_rows = conn.execute(
+                """
+                SELECT sender, count(*) as cnt 
+                FROM investigations 
+                WHERE org_id = ? AND verdict IN ('MALICIOUS', 'SUSPICIOUS')
+                GROUP BY sender 
+                ORDER BY cnt DESC 
+                LIMIT 5;
+                """,
+                (tenant_id,),
+            ).fetchall()
+            top_senders = [
+                {"sender": r["sender"], "count": r["cnt"]} for r in sender_rows
+            ]
+
+            return {
+                "total_emails_analyzed": total_analyzed,
+                "total_threats_detected": total_threats,
+                "threat_breakdown_by_verdict": verdict_breakdown,
+                "top_threat_senders": top_senders,
+                "average_investigation_latency_ms": avg_latency,
+            }
+        finally:
+            conn.close()
+
+    def get_tenant_remediation_stats(
+        self, tenant_id: str, time_window_hours: int = 24
+    ) -> dict[str, int]:
+        """Query tenant-isolated remediation action statistics from audit_logs details JSON."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT details FROM audit_logs WHERE org_id = ? AND action LIKE 'REMEDIATION_%';",
+                (tenant_id,),
+            ).fetchall()
+
+            remediation_counts: dict[str, int] = {}
+            for r in rows:
+                if not r["details"]:
+                    continue
+                try:
+                    payload = json.loads(r["details"])
+                    action = payload.get("approved_action", "UNKNOWN")
+                    remediation_counts[action] = remediation_counts.get(action, 0) + 1
+                except Exception:
+                    continue
+
+            return remediation_counts
         finally:
             conn.close()
 

@@ -358,6 +358,32 @@ class EmailSecurityPipelineOrchestrator:
             s51_ms = (time.perf_counter() - s51_start) * 1000.0
             stage_durations["remediation"] = s51_ms
 
+        # Stage 5.2: Enterprise Threat Analytics & Reporting (OPTIONAL / DEGRADED)
+        self.hooks.before_stage("analytics", ctx)
+        s52_start = time.perf_counter()
+        try:
+            from src.analytics.engine import AnalyticsEngine
+            from src.analytics.models import TenantAnalyticsRequestDTO
+
+            analytics_engine = AnalyticsEngine()
+            analytics_summary = analytics_engine.aggregate_tenant_analytics(
+                TenantAnalyticsRequestDTO(
+                    tenant_id=risk.tenant_id, time_window_hours=24
+                )
+            )
+            s52_ms = (time.perf_counter() - s52_start) * 1000.0
+            stage_durations["analytics"] = s52_ms
+            s52_stage_res = StageResult[Any](
+                status=StageStatus.SUCCESS,
+                execution_time_ms=s52_ms,
+                dto=analytics_summary,
+            )
+            self.hooks.after_stage("analytics", s52_stage_res, ctx)
+        except Exception as exc:
+            self.hooks.on_stage_error("analytics", exc, ctx)
+            s52_ms = (time.perf_counter() - s52_start) * 1000.0
+            stage_durations["analytics"] = s52_ms
+
         total_ms = (time.perf_counter() - start_time) * 1000.0
 
         # Evaluate SLA Telemetry
