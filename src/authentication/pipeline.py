@@ -70,7 +70,11 @@ class AuthenticationPipeline:
         )
 
         # Stage 4: ARC Chain Validation
-        arc_res = validate_arc_chain(parsed)
+        arc_res = validate_arc_chain(
+            parsed,
+            crypto_provider=self.crypto_provider,
+            dns_resolver=self.dns_resolver,
+        )
 
         # Calculate Aggregated Security Metrics
         auth_pass = (dmarc_res.result == "PASS") or (

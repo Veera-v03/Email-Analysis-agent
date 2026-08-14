@@ -12,7 +12,7 @@ from src.transmission.models import TransmissionAnalysis
 
 @runtime_checkable
 class FeatureExtractorProvider(Protocol):
-    """Protocol interface for module-specific feature extractors (Parsing, Transmission, Auth, Intel, OCR, LLM)."""
+    """Protocol interface for module-specific feature extractors (Parsing, Transmission, Auth, Intel, Content, OCR, LLM)."""
 
     @property
     def provider_name(self) -> str: ...
@@ -126,16 +126,112 @@ class ThreatIntelFeatureExtractor(FeatureExtractorProvider):
         }
 
 
+class ContentFeatureExtractor(FeatureExtractorProvider):
+    """Feature extractor for Module 14 Content & Media Intelligence."""
+
+    @property
+    def provider_name(self) -> str:
+        return "content_intelligence"
+
+    def extract_features(
+        self,
+        parsed: ParsedEmail | None = None,
+        transmission: TransmissionAnalysis | None = None,
+        auth: AuthenticationVerification | None = None,
+        intel: ThreatIntelEnrichmentResult | None = None,
+    ) -> dict[str, Any]:
+        if not parsed:
+            return {}
+        body_lower = (parsed.body_plain or "").lower() + (
+            parsed.body_html or ""
+        ).lower()
+        return {
+            "has_hidden_text": "display:none" in body_lower
+            or "font-size:0px" in body_lower,
+            "external_form_actions": "<form" in body_lower and "action=" in body_lower,
+            "urgency_score": 0.85
+            if any(
+                w in body_lower
+                for w in ["urgent", "within 24 hours", "immediate action"]
+            )
+            else 0.0,
+            "financial_coercion_score": 0.90
+            if any(
+                w in body_lower
+                for w in ["wire transfer", "payment invoice", "bank details"]
+            )
+            else 0.0,
+            "primary_intent": "PAYMENT_REQUEST"
+            if "wire transfer" in body_lower
+            else (
+                "CREDENTIAL_UPDATE" if "reset password" in body_lower else "LEGITIMATE"
+            ),
+        }
+
+
+class URLFeatureExtractor(FeatureExtractorProvider):
+    """Feature extractor for Module 15 URL & Sandbox Intelligence."""
+
+    @property
+    def provider_name(self) -> str:
+        return "url_intelligence"
+
+    def extract_features(
+        self,
+        parsed: ParsedEmail | None = None,
+        transmission: TransmissionAnalysis | None = None,
+        auth: AuthenticationVerification | None = None,
+        intel: ThreatIntelEnrichmentResult | None = None,
+    ) -> dict[str, Any]:
+        if not parsed:
+            return {}
+        has_mismatched = any(u.is_mismatched for u in parsed.urls)
+        has_shortened = any(u.is_shortened for u in parsed.urls)
+        return {
+            "has_mismatched_urls": has_mismatched,
+            "has_shortened_urls": has_shortened,
+            "extracted_urls_count": len(parsed.urls),
+            "ssrf_violation_detected": False,
+        }
+
+
+class CorrelationFeatureExtractor(FeatureExtractorProvider):
+    """Feature extractor for Module 16 Threat Correlation & Campaign Intelligence."""
+
+    @property
+    def provider_name(self) -> str:
+        return "threat_correlation"
+
+    def extract_features(
+        self,
+        parsed: ParsedEmail | None = None,
+        transmission: TransmissionAnalysis | None = None,
+        auth: AuthenticationVerification | None = None,
+        intel: ThreatIntelEnrichmentResult | None = None,
+    ) -> dict[str, Any]:
+        if not parsed:
+            return {}
+        return {
+            "campaign_detected": False,
+            "campaign_score": 0.0,
+            "mitre_technique_count": 0,
+            "historical_matches_count": 0,
+        }
+
+
 class RiskFeatureRegistry:
     """Registry composing feature extractors from upstream modules and future providers."""
 
     def __init__(self) -> None:
         self._providers: dict[str, FeatureExtractorProvider] = {}
-        # Register default extractors for Modules 6-9
+        # Register default extractors for Modules 6-9, 14, 15, and 16
         self.register(ParsingFeatureExtractor())
         self.register(TransmissionFeatureExtractor())
         self.register(AuthenticationFeatureExtractor())
         self.register(ThreatIntelFeatureExtractor())
+        self.register(ContentFeatureExtractor())
+        self.register(URLFeatureExtractor())
+        self.register(CorrelationFeatureExtractor())
 
     def register(self, provider: FeatureExtractorProvider) -> None:
         """Register a feature extractor provider."""

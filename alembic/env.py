@@ -1,6 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
+# pyrefly: ignore [missing-import]
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 

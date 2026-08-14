@@ -17,8 +17,12 @@ from src.security_intelligence.threat_intel.threat_intel_service import (
 )
 from src.threat_intel.exceptions import CircuitBreakerOpenError
 from src.threat_intel.providers.abuseipdb import AbuseIPDBProvider
+from src.threat_intel.providers.google_safe_browsing import GoogleSafeBrowsingProvider
+from src.threat_intel.providers.openphish import OpenPhishProvider
 from src.threat_intel.providers.otx import AlienVaultOTXProvider
+from src.threat_intel.providers.phishtank import PhishTankProvider
 from src.threat_intel.providers.virustotal import VirusTotalProvider
+from src.threat_intel.providers.whois import WHOISProvider
 from src.threat_intel.resilience.circuit_breaker import (
     ProviderCircuitBreaker,
     ProviderRateLimiter,
@@ -109,6 +113,10 @@ class ThreatIntelManager:
             self.registry.register(VirusTotalProvider())
             self.registry.register(AbuseIPDBProvider())
             self.registry.register(AlienVaultOTXProvider())
+            self.registry.register(WHOISProvider())
+            self.registry.register(GoogleSafeBrowsingProvider())
+            self.registry.register(PhishTankProvider())
+            self.registry.register(OpenPhishProvider())
 
     def lookup_indicator(
         self, target: str, target_type: ThreatIntelTargetType

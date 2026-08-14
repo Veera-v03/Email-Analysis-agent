@@ -58,6 +58,16 @@ class ScamONSettings(BaseSettings):
     redis_url: SecretStr | None = Field(default=None)
     s3_endpoint_url: str | None = Field(default=None)
 
+    # Module 18 Production Connector & Telemetry Configurations
+    ms_graph_client_id: SecretStr | None = Field(default=None)
+    ms_graph_client_secret: SecretStr | None = Field(default=None)
+    ms_graph_tenant_id: SecretStr | None = Field(default=None)
+    okta_org_url: SecretStr | None = Field(default=None)
+    okta_api_token: SecretStr | None = Field(default=None)
+    panos_hostname: SecretStr | None = Field(default=None)
+    panos_api_key: SecretStr | None = Field(default=None)
+    prometheus_enabled: bool = Field(default=True)
+
     # Feature Flags (Matching SAS v1.1.0 Section 5.3)
     enable_llm_reasoning_engine: bool = Field(default=True)
     enable_dynamic_playwright_screenshots: bool = Field(default=True)

@@ -1,10 +1,10 @@
-"""URL extraction from HTML DOM and plaintext with link text mismatch detection."""
+"""URL extraction from HTML DOM and plaintext with link text mismatch detection and canonicalization."""
 
 from __future__ import annotations
 
 import re
 from html.parser import HTMLParser as StdHTMLParser
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from src.parsing.models import ExtractedURLDTO
 
@@ -24,6 +24,36 @@ KNOWN_SHORTENERS = {
     "buff.ly",
     "adf.ly",
 }
+
+
+def normalize_url_canonical(url: str) -> str:
+    """RFC 3986 URL canonicalization stripping default ports, normalizing scheme/domain to lowercase."""
+    if not url or not url.strip():
+        return ""
+
+    cleaned = url.strip()
+    try:
+        parsed = urlparse(cleaned)
+        scheme = parsed.scheme.lower() or "http"
+        netloc = parsed.netloc.lower()
+
+        # Strip default ports
+        if scheme == "http" and netloc.endswith(":80"):
+            netloc = netloc[:-3]
+        elif scheme == "https" and netloc.endswith(":443"):
+            netloc = netloc[:-4]
+
+        # Strip trailing dot from hostname
+        if netloc.endswith("."):
+            netloc = netloc[:-1]
+
+        path = parsed.path
+
+        return urlunparse(
+            (scheme, netloc, path, parsed.params, parsed.query, parsed.fragment)
+        )
+    except Exception:
+        return cleaned
 
 
 class _HTMLAnchorExtractor(StdHTMLParser):
@@ -59,22 +89,20 @@ def parse_url_entity(
     if not target_url or not target_url.strip():
         return None
 
-    cleaned_url = target_url.strip()
+    cleaned_url = normalize_url_canonical(target_url)
     try:
         parsed = urlparse(cleaned_url)
-        scheme = parsed.scheme.lower() or "http"
-        domain = parsed.netloc.lower()
+        scheme = parsed.scheme
+        domain = parsed.netloc
 
         if not domain:
             return None
 
-        # Check if domain is a known shortener
         is_shortened = any(
             domain == short or domain.endswith("." + short)
             for short in KNOWN_SHORTENERS
         )
 
-        # Check for link display mismatch (e.g. anchor text is a different URL/domain)
         is_mismatched = False
         if anchor_text:
             cleaned_anchor = anchor_text.strip()
