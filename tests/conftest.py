@@ -2,7 +2,53 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
+from pathlib import Path
+
 import pytest
+
+from src.config.enterprise_config import settings
+from src.database.db_client import db_client
+
+
+@pytest.fixture(autouse=True)
+def isolate_enterprise_test_environment(tmp_path: Path) -> Generator[None]:
+    """Isolate SQLite database and vector memory filesystem paths for test execution."""
+    original_db_path = settings.db_path
+    original_client_path = db_client.db_path
+    original_memory_dir = settings.memory_dir
+
+    temp_db = tmp_path / "test_enterprise.db"
+    temp_memory = tmp_path / "memory"
+    temp_memory.mkdir(parents=True, exist_ok=True)
+
+    settings.db_path = str(temp_db)
+    settings.memory_dir = str(temp_memory)
+    db_client.db_path = str(temp_db)
+    db_client._initialize_db()
+
+    # Clear memory services cache before test
+    try:
+        from src.api.main import _organization_memory_services
+
+        _organization_memory_services.clear()
+    except Exception:
+        pass
+
+    yield
+
+    # Restore original settings and paths
+    settings.db_path = original_db_path
+    settings.memory_dir = original_memory_dir
+    db_client.db_path = original_client_path
+
+    # Clear memory services cache during teardown
+    try:
+        from src.api.main import _organization_memory_services
+
+        _organization_memory_services.clear()
+    except Exception:
+        pass
 
 from src.analyzers.sender.authentication import (
     DeterministicAuthenticationHeaderInterpreter,

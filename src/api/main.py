@@ -67,7 +67,8 @@ def get_memory_services(org_id: str) -> tuple[Any, Any]:
         char for char in org_id if char.isalnum() or char in ("-", "_")
     )
     store = InMemoryVectorStore(
-        persistence_file=Path("data") / "memory" / f"{safe_org_id or 'default'}.json"
+        persistence_file=Path(settings.memory_dir)
+        / f"{safe_org_id or 'default'}.json"
     )
     embedder = DeterministicEmbeddingProvider()
     services = (

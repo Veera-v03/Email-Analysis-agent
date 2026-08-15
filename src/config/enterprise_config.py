@@ -28,6 +28,7 @@ class EnterpriseSettings(BaseSettings):
 
     # Database Settings
     db_path: str = Field(default="data/enterprise.db")
+    memory_dir: str = Field(default="data/memory")
 
     # Feature Flags
     enable_mfa: bool = Field(default=False)

@@ -36,23 +36,6 @@ class MockResponse:
         return self.json_data
 
 
-@pytest.fixture(autouse=True)
-def setup_test_db() -> Generator[None]:
-    """Redirect global db_client path to a temporary database for test duration."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        original_db_path = db_client.db_path
-        db_file = Path(tmp_dir) / "test_enterprise.db"
-
-        # Override db_client and initialize schema
-        db_client.db_path = str(db_file)
-        db_client._initialize_db()
-
-        yield
-
-        # Restore db_path
-        db_client.db_path = original_db_path
-
-
 def test_api_investigate_integration_success() -> None:
     """Verify investigation endpoint with real wiring and mocked LLM calls."""
     # 1. Setup organization in temp db
