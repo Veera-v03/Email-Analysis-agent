@@ -101,3 +101,24 @@ class AnalyticsAggregatedEvent(BaseEvent):
     total_emails_analyzed: int = Field(default=0, ge=0, description="Total analyzed")
     total_threats_detected: int = Field(default=0, ge=0, description="Total threats")
     remediations_executed: int = Field(default=0, ge=0, description="Total SOC actions")
+
+
+class NotificationDispatchedEvent(BaseEvent):
+    """Event emitted when security notification alerts are successfully delivered."""
+
+    event_type: str = "scamon.prod.notification.dispatched.v1"
+    notification_id: str = Field(description="Unique notification UUID string")
+    event_name: str = Field(description="Underlying triggering event name")
+    delivered_channels: list[str] = Field(default_factory=list, description="Delivered channel names")
+    duration_ms: float = Field(default=0.0, description="Total dispatch latency in ms")
+
+
+class NotificationFailedEvent(BaseEvent):
+    """Event emitted when one or more notification channel deliveries fail."""
+
+    event_type: str = "scamon.prod.notification.failed.v1"
+    notification_id: str = Field(description="Unique notification UUID string")
+    event_name: str = Field(description="Underlying triggering event name")
+    failed_channels: list[str] = Field(default_factory=list, description="Failed channel names")
+    error_summary: str = Field(description="Summary error message")
+

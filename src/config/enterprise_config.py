@@ -41,6 +41,19 @@ class EnterpriseSettings(BaseSettings):
     slack_webhook_url: str | None = Field(default=None)
     teams_webhook_url: str | None = Field(default=None)
 
+    # Module 20 Notification & Alerting Configurations
+    notification_rate_limit_per_minute: int = Field(default=60)
+    notification_max_retries: int = Field(default=3)
+    notification_retry_backoff_sec: float = Field(default=1.0)
+    notification_timeout_sec: float = Field(default=5.0)
+    notification_webhook_signing_secret: SecretStr | None = Field(default=None)
+    smtp_host: str | None = Field(default=None)
+    smtp_port: int = Field(default=587)
+    smtp_user: str | None = Field(default=None)
+    smtp_password: SecretStr | None = Field(default=None)
+    smtp_from: str = Field(default="soc-alerts@scamshield.enterprise")
+    smtp_use_tls: bool = Field(default=True)
+
     # Runtime overrides dictionary
     _overrides: dict[str, Any] = {}
 
