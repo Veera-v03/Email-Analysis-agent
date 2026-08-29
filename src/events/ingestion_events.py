@@ -60,3 +60,35 @@ class MailboxSyncFailedEvent(BaseEvent):
     event_type: str = "scamon.prod.ingestion.sync.failed.v1"
     account_id: UUID = Field(description="Associated EmailAccount UUID")
     error_message: str = Field(description="Failure description")
+
+
+class MailboxConnectedEvent(BaseEvent):
+    """Event emitted when a mailbox daemon successfully connects and begins monitoring."""
+
+    event_type: str = "scamon.prod.ingestion.mailbox.connected.v1"
+    account_id: UUID = Field(description="Associated EmailAccount UUID")
+    mailbox_address: str = Field(description="Monitored mailbox email address")
+    provider: str = Field(description="Provider name (e.g. MS_GRAPH, GMAIL, IMAP)")
+    mode: str = Field(description="Ingestion mode (e.g. WEBHOOK, POLLING, IDLE)")
+
+
+class MailboxDisconnectedEvent(BaseEvent):
+    """Event emitted when a mailbox daemon disconnects or transitions to stopped/degraded."""
+
+    event_type: str = "scamon.prod.ingestion.mailbox.disconnected.v1"
+    account_id: UUID = Field(description="Associated EmailAccount UUID")
+    mailbox_address: str = Field(description="Monitored mailbox email address")
+    provider: str = Field(description="Provider name (e.g. MS_GRAPH, GMAIL, IMAP)")
+    reason: str | None = Field(default=None, description="Disconnection or stop reason")
+
+
+class IngestionDeadLetteredEvent(BaseEvent):
+    """Event emitted when an unprocessable or poison ingestion payload is routed to DLQ."""
+
+    event_type: str = "scamon.prod.ingestion.dead_lettered.v1"
+    dead_letter_id: UUID = Field(description="Unique dead-letter record UUID")
+    account_id: UUID = Field(description="Associated EmailAccount UUID")
+    provider: str = Field(description="Provider name")
+    reason: str = Field(description="Classification reason for quarantine")
+    provider_message_id: str | None = Field(default=None, description="Provider message ID if available")
+    error_message: str = Field(description="Summary error message")
