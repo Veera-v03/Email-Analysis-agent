@@ -217,6 +217,9 @@ class EmailSecurityPipelineOrchestrator:
             )
 
         # Stage 3.5: Content & Media Intelligence (OPTIONAL / DEGRADED)
+        content_res = None
+        url_res = None
+        correlation_res = None
         self.hooks.before_stage("content_intelligence", ctx)
         s35_start = time.perf_counter()
         try:
@@ -288,7 +291,15 @@ class EmailSecurityPipelineOrchestrator:
         self.hooks.before_stage("risk_assessment", ctx)
         s4_start = time.perf_counter()
         try:
-            risk = await self.risk_engine.assess_risk(parsed, transmission, auth, intel)
+            risk = await self.risk_engine.assess_risk(
+                parsed=parsed,
+                transmission=transmission,
+                auth=auth,
+                intel=intel,
+                content_res=content_res,
+                url_res=url_res,
+                correlation_res=correlation_res,
+            )
             s4_ms = (time.perf_counter() - s4_start) * 1000.0
             stage_durations["risk_assessment"] = s4_ms
             s4_res = StageResult[RiskAssessment](

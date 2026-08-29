@@ -94,9 +94,18 @@ class RiskAssessment(BaseDTO):
 
     # 2. Risk Assessment Results
     risk_score: int = Field(ge=0, le=100, description="Consolidated risk score (0-100)")
+    calibrated_probability: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Calibrated threat probability (0.0 - 1.0)",
+    )
     verdict: Verdict = Field(description="CLEAN, SUSPICIOUS, MALICIOUS")
     recommended_action: ActionTaken = Field(
         description="DELIVERED, BANNER_INJECTED, QUARANTINED, BLOCKED"
+    )
+    tenant_profile: str = Field(
+        default="BALANCED", description="Applied tenant risk profile sensitivity"
     )
     confidence_details: ConfidenceScoreDetailsDTO = Field(
         description="Detailed confidence fusion metrics"
