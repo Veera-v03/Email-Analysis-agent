@@ -139,11 +139,13 @@ async def add_correlation_and_timing(request: Request, call_next: Any) -> Respon
 
 
 # --- Subsystem Routers ---
+from src.feedback.router import feedback_router
 from src.ingestion_gateway.webhook_handler import ingestion_webhook_router
 from src.realtime.router import realtime_router
 
 app.include_router(ingestion_webhook_router)
 app.include_router(realtime_router)
+app.include_router(feedback_router)
 
 
 # --- Repositories Dependency Helpers ---

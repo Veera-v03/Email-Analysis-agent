@@ -15,6 +15,11 @@ from src.events.email_events import (
 from src.events.email_events import (
     EmailParsedEvent as LegacyEmailParsedEvent,
 )
+from src.events.feedback_events import (
+    AnalystVerdictSubmittedEvent,
+    FalseNegativeConfirmedEvent,
+    FalsePositiveConfirmedEvent,
+)
 from src.events.iam_events import (
     PermissionDeniedEvent,
     TokenRefreshedEvent,
@@ -55,6 +60,7 @@ from src.events.transmission_events import (
 
 __all__ = [
     "ActionExecutedEvent",
+    "AnalystVerdictSubmittedEvent",
     "AttachmentExtractedEvent",
     "AuthEvaluatedEvent",
     "BaseEvent",
@@ -65,6 +71,8 @@ __all__ = [
     "EmailParsingFailedEvent",
     "EmailReceivedEvent",
     "EmailRenderedEvent",
+    "FalseNegativeConfirmedEvent",
+    "FalsePositiveConfirmedEvent",
     "HeaderAnalysisCompletedEvent",
     "HeaderAnomalyDetectedEvent",
     "IntelEnrichedEvent",
