@@ -54,7 +54,7 @@ class EnterpriseSettings(BaseSettings):
     smtp_from: str = Field(default="soc-alerts@scamshield.enterprise")
     smtp_use_tls: bool = Field(default=True)
 
-    # Module 21 Ingestion Gateway Configurations
+    # Module 21 & 22 Ingestion Gateway & Account Sync Configurations
     ingestion_enabled: bool = Field(default=True)
     ingestion_poll_interval_sec: int = Field(default=30)
     ingestion_max_mime_size_bytes: int = Field(default=52_428_800)  # 50MB
@@ -62,6 +62,14 @@ class EnterpriseSettings(BaseSettings):
     msgraph_webhook_client_state: SecretStr | None = Field(default=None)
     gmail_pubsub_verification_token: SecretStr | None = Field(default=None)
     imap_idle_timeout_sec: int = Field(default=900)  # 15 minutes
+    account_sync_interval_sec: int = Field(default=30)
+
+    # Module 22 Phase 3 Real-Time SOC Stream Configurations
+    realtime_enabled: bool = Field(default=True)
+    realtime_max_client_queue: int = Field(default=100)
+    realtime_heartbeat_interval_sec: float = Field(default=15.0)
+    realtime_client_timeout_sec: float = Field(default=45.0)
+    realtime_max_clients_per_tenant: int = Field(default=10)
 
     # Runtime overrides dictionary
     _overrides: dict[str, Any] = {}

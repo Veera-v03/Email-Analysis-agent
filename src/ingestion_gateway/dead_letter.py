@@ -1,18 +1,20 @@
-"""Dead-Letter Queue and poison message isolation engine for Ingestion Gateway (Module 21)."""
+"""Dead-Letter Queue and poison message isolation engine for Ingestion Gateway (Modules 21 & 22)."""
 
 from __future__ import annotations
 
 import threading
-from collections import deque
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.ingestion_gateway.models import MailboxProvider
 from src.utils.logging import get_logger
+
+if TYPE_CHECKING:
+    from src.ingestion_gateway.persistence.base import IDeadLetterStorage
 
 logger = get_logger(__name__)
 
@@ -55,15 +57,25 @@ DLQEventHook = Callable[[DeadLetterItemDTO], Any]
 
 
 class DeadLetterQueue:
-    """Thread-safe, bounded, in-memory Dead-Letter Queue with tenant isolation and retry tracking."""
+    """Thread-safe, bounded Dead-Letter Queue supporting both in-memory and persistent storage backends."""
 
-    def __init__(self, max_items: int = 1000) -> None:
+    def __init__(
+        self,
+        max_items: int = 1000,
+        storage: IDeadLetterStorage | None = None,
+    ) -> None:
         self.max_items = max_items
         self._lock = threading.RLock()
-        # Ring buffer / deque of IDs for capacity bounding
-        self._queue: deque[UUID] = deque(maxlen=max_items)
-        # Store mapping: dead_letter_id -> DeadLetterItemDTO
-        self._items: dict[UUID, DeadLetterItemDTO] = {}
+
+        if storage is None:
+            from src.ingestion_gateway.persistence.in_memory import (
+                InMemoryDeadLetterStorage,
+            )
+
+            self.storage: IDeadLetterStorage = InMemoryDeadLetterStorage(max_items=max_items)
+        else:
+            self.storage = storage
+
         self._event_hook: DLQEventHook | None = None
         self._total_enqueued: int = 0
         self._total_purged: int = 0
@@ -103,14 +115,7 @@ class DeadLetterQueue:
         )
 
         with self._lock:
-            # If at capacity, pop oldest to maintain bound
-            if len(self._queue) == self.max_items and self._queue:
-                oldest_id = self._queue[0]
-                if oldest_id in self._items:
-                    del self._items[oldest_id]
-
-            self._queue.append(item.dead_letter_id)
-            self._items[item.dead_letter_id] = item
+            self.storage.save(item)
             self._total_enqueued += 1
 
             logger.warning(
@@ -132,51 +137,34 @@ class DeadLetterQueue:
     def get(self, dead_letter_id: UUID) -> DeadLetterItemDTO | None:
         """Retrieve a dead-letter item by UUID."""
         with self._lock:
-            return self._items.get(dead_letter_id)
+            return self.storage.get(dead_letter_id)
 
     def list_items(
         self, tenant_id: UUID | None = None, limit: int = 50
     ) -> list[DeadLetterItemDTO]:
         """List dead-letter items, optionally filtered by tenant UUID."""
         with self._lock:
-            if tenant_id is None:
-                return list(self._items.values())[:limit]
-            return [
-                item for item in self._items.values() if item.tenant_id == tenant_id
-            ][:limit]
+            return self.storage.list_items(tenant_id=tenant_id, limit=limit)
 
     def purge(self, dead_letter_id: UUID) -> bool:
         """Remove a dead-letter item from the queue."""
         with self._lock:
-            if dead_letter_id in self._items:
-                del self._items[dead_letter_id]
-                try:
-                    self._queue.remove(dead_letter_id)
-                except ValueError:
-                    pass
+            deleted = self.storage.delete(dead_letter_id)
+            if deleted:
                 self._total_purged += 1
-                return True
-            return False
+            return deleted
 
     def clear_tenant(self, tenant_id: UUID) -> int:
         """Purge all dead-letter items belonging to a specific tenant."""
         with self._lock:
-            target_ids = [
-                d_id for d_id, item in self._items.items() if item.tenant_id == tenant_id
-            ]
-            for d_id in target_ids:
-                del self._items[d_id]
-                try:
-                    self._queue.remove(d_id)
-                except ValueError:
-                    pass
-            self._total_purged += len(target_ids)
-            return len(target_ids)
+            cleared = self.storage.clear_tenant(tenant_id)
+            self._total_purged += cleared
+            return cleared
 
     def requeue(self, dead_letter_id: UUID) -> DeadLetterItemDTO | None:
         """Increment retry count for an item. Returns updated item or None if max retries exceeded."""
         with self._lock:
-            item = self._items.get(dead_letter_id)
+            item = self.storage.get(dead_letter_id)
             if not item:
                 return None
 
@@ -203,7 +191,7 @@ class DeadLetterQueue:
                 retry_count=item.retry_count + 1,
                 max_retries=item.max_retries,
             )
-            self._items[dead_letter_id] = updated_item
+            self.storage.save(updated_item)
             self._total_requeued += 1
             return updated_item
 
@@ -211,7 +199,7 @@ class DeadLetterQueue:
         """Return DLQ telemetry and size statistics."""
         with self._lock:
             return {
-                "current_size": len(self._items),
+                "current_size": self.storage.count(),
                 "max_capacity": self.max_items,
                 "total_enqueued": self._total_enqueued,
                 "total_purged": self._total_purged,

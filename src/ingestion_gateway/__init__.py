@@ -1,7 +1,8 @@
-"""Enterprise Live Mailbox Ingestion Gateway & Webhook Daemon Package (Module 21)."""
+"""Enterprise Live Mailbox Ingestion Gateway & Webhook Daemon Package (Modules 21 & 22)."""
 
 from __future__ import annotations
 
+from src.ingestion_gateway.coordinator import AccountSyncCoordinator
 from src.ingestion_gateway.dead_letter import (
     DeadLetterItemDTO,
     DeadLetterQueue,
@@ -30,6 +31,11 @@ from src.ingestion_gateway.module import (
     IngestionGatewayModule,
     register_ingestion_gateway_module,
 )
+from src.ingestion_gateway.persistence import (
+    FileBackedDeadLetterStorage,
+    IDeadLetterStorage,
+    InMemoryDeadLetterStorage,
+)
 from src.ingestion_gateway.providers.base import (
     DeliveryHandler,
     IAsyncMailboxDaemon,
@@ -57,7 +63,12 @@ __all__ = [
     # Deduplication & Dead Letter Queue
     "IngestionDeduplicationEngine",
     "DeadLetterQueue",
-    # Manager & Module Lifecycle
+    # Persistence Adapters (Module 22)
+    "IDeadLetterStorage",
+    "InMemoryDeadLetterStorage",
+    "FileBackedDeadLetterStorage",
+    # Coordinator & Manager (Module 22)
+    "AccountSyncCoordinator",
     "IngestionGatewayManager",
     "IngestionGatewayModule",
     "register_ingestion_gateway_module",

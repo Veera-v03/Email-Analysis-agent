@@ -138,6 +138,14 @@ async def add_correlation_and_timing(request: Request, call_next: Any) -> Respon
     return response
 
 
+# --- Subsystem Routers ---
+from src.ingestion_gateway.webhook_handler import ingestion_webhook_router
+from src.realtime.router import realtime_router
+
+app.include_router(ingestion_webhook_router)
+app.include_router(realtime_router)
+
+
 # --- Repositories Dependency Helpers ---
 def get_user_repo() -> UserRepository:
     return UserRepository()
