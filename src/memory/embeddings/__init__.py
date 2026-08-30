@@ -1,5 +1,6 @@
 """Embedding provider module exports."""
 
+from src.memory.embeddings.dense_embedding import DenseEmbeddingProvider
 from src.memory.embeddings.embedding_provider import (
     DeterministicEmbeddingProvider,
     IEmbeddingProvider,
@@ -7,7 +8,8 @@ from src.memory.embeddings.embedding_provider import (
 )
 
 __all__ = [
-    "IEmbeddingProvider",
+    "DenseEmbeddingProvider",
     "DeterministicEmbeddingProvider",
+    "IEmbeddingProvider",
     "MockEmbeddingProvider",
 ]

@@ -1,6 +1,7 @@
 """Phase 7 - Memory & Learning Intelligence Subsystem Exports."""
 
 from src.memory.embeddings import (
+    DenseEmbeddingProvider,
     DeterministicEmbeddingProvider,
     IEmbeddingProvider,
     MockEmbeddingProvider,
@@ -22,6 +23,14 @@ from src.memory.models import (
     ThreatMemory,
     URLMemory,
 )
+from src.memory.rag import (
+    ISemanticIncidentRAG,
+    RAGResult,
+    RAGRetrievalStatus,
+    RetrievedIncidentContext,
+    SemanticIncidentRAGEngine,
+    TrustClassification,
+)
 from src.memory.repositories import (
     AttachmentRepository,
     BaseMemoryRepository,
@@ -37,7 +46,7 @@ from src.memory.services import (
     LearningPipeline,
     MemoryRetrievalService,
 )
-from src.memory.storage import InMemoryVectorStore, IVectorStore
+from src.memory.storage import InMemoryVectorStore, IVectorStore, PgVectorStore
 
 __all__ = [
     # Models
@@ -56,12 +65,21 @@ __all__ = [
     "FeedbackRecord",
     "MemoryStats",
     # Embeddings
-    "IEmbeddingProvider",
+    "DenseEmbeddingProvider",
     "DeterministicEmbeddingProvider",
+    "IEmbeddingProvider",
     "MockEmbeddingProvider",
     # Storage
     "IVectorStore",
     "InMemoryVectorStore",
+    "PgVectorStore",
+    # RAG
+    "ISemanticIncidentRAG",
+    "SemanticIncidentRAGEngine",
+    "RAGResult",
+    "RAGRetrievalStatus",
+    "RetrievedIncidentContext",
+    "TrustClassification",
     # Repositories
     "BaseMemoryRepository",
     "InvestigationRepository",

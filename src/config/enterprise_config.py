@@ -117,6 +117,35 @@ class EnterpriseSettings(BaseSettings):
     panos_rate_limit_per_min: int = Field(default=60)
     panos_address_group: str = Field(default="ScamON_BlockList")
 
+    # Production Hardening Phase 4.1: PostgreSQL + pgvector Semantic Memory
+    pgvector_enabled: bool = Field(default=False)
+    pgvector_url: SecretStr | None = Field(default=None)
+    pgvector_host: str | None = Field(default=None)
+    pgvector_port: int = Field(default=5432)
+    pgvector_database: str = Field(default="scamon")
+    pgvector_user: str | None = Field(default=None)
+    pgvector_password: SecretStr | None = Field(default=None)
+    pgvector_pool_size: int = Field(default=5)
+    pgvector_timeout_sec: float = Field(default=3.0)
+    pgvector_embedding_dimension: int = Field(default=768)
+
+    # Production Hardening Phase 4.2: Dense Neural Embeddings
+    embedding_enabled: bool = Field(default=False)
+    embedding_model: str = Field(default="text-embedding-004")
+    embedding_dimension: int = Field(default=768)
+    embedding_api_key: SecretStr | None = Field(default=None)
+    embedding_timeout_sec: float = Field(default=5.0)
+    embedding_rate_limit_per_min: int = Field(default=300)
+    embedding_cache_ttl_sec: int = Field(default=86400)
+
+    # Production Hardening Phase 4.3: Semantic Incident RAG & Prompt Guard
+    rag_enabled: bool = Field(default=True)
+    rag_top_k: int = Field(default=5, gt=0)
+    rag_similarity_threshold: float = Field(default=0.70, ge=0.0, le=1.0)
+    rag_max_results: int = Field(default=5, gt=0)
+    rag_max_context_chars: int = Field(default=4000, gt=0)
+    rag_max_incident_chars: int = Field(default=800, gt=0)
+
     # Runtime overrides dictionary
     _overrides: dict[str, Any] = {}
 
