@@ -5,7 +5,11 @@ from __future__ import annotations
 from src.remediation.adapters.base_adapter import IRemediationAdapter
 from src.remediation.adapters.identity_adapter import IdentityAdapter
 from src.remediation.adapters.mailbox_adapter import EmailMailboxAdapter
+from src.remediation.adapters.msgraph_adapter import (
+    MicrosoftGraphRemediationAdapter,
+)
 from src.remediation.adapters.network_adapter import NetworkSecurityAdapter
+from src.remediation.adapters.panos_adapter import PaloAltoPANOSAdapter
 from src.remediation.audit_repository import IAuditRepository, SQLiteAuditRepository
 from src.remediation.dispatcher import RemediationDispatcher
 from src.remediation.engine import RemediationEngine
@@ -32,8 +36,10 @@ __all__ = [
     "IAuditRepository",
     "IRemediationAdapter",
     "IdentityAdapter",
+    "MicrosoftGraphRemediationAdapter",
     "NetworkBlockRequestDTO",
     "NetworkSecurityAdapter",
+    "PaloAltoPANOSAdapter",
     "PolicyViolationError",
     "RemediationDispatcher",
     "RemediationEngine",

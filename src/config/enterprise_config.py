@@ -100,6 +100,23 @@ class EnterpriseSettings(BaseSettings):
     threat_intel_circuit_breaker_threshold: int = Field(default=5)
     threat_intel_circuit_breaker_cooldown_sec: float = Field(default=60.0)
 
+    # Production Hardening Phase 3: Real Enterprise Remediation Adapters (M365 & PAN-OS)
+    msgraph_remediation_tenant_id: str | None = Field(default=None)
+    msgraph_remediation_client_id: str | None = Field(default=None)
+    msgraph_remediation_client_secret: SecretStr | None = Field(default=None)
+    msgraph_remediation_endpoint: str = Field(
+        default="https://graph.microsoft.com/v1.0"
+    )
+    msgraph_remediation_timeout_sec: float = Field(default=5.0)
+    msgraph_remediation_rate_limit_per_min: int = Field(default=120)
+
+    panos_host: str | None = Field(default=None)
+    panos_api_key: SecretStr | None = Field(default=None)
+    panos_verify_ssl: bool = Field(default=True)
+    panos_timeout_sec: float = Field(default=5.0)
+    panos_rate_limit_per_min: int = Field(default=60)
+    panos_address_group: str = Field(default="ScamON_BlockList")
+
     # Runtime overrides dictionary
     _overrides: dict[str, Any] = {}
 
