@@ -71,6 +71,11 @@ class EnterpriseSettings(BaseSettings):
     realtime_client_timeout_sec: float = Field(default=45.0)
     realtime_max_clients_per_tenant: int = Field(default=10)
 
+    # Production Hardening Phase 1: Shared Redis State & Distributed Coordination
+    redis_url: str = Field(default="redis://localhost:6379/0")
+    redis_timeout_sec: float = Field(default=2.0)
+    redis_fallback_to_memory: bool = Field(default=True)
+
     # Runtime overrides dictionary
     _overrides: dict[str, Any] = {}
 

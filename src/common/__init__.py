@@ -26,16 +26,29 @@ from src.common.models import (
     ErrorDetailDTO,
     HealthStatusDTO,
 )
+from src.common.redis_client import (
+    AsyncRedisClient,
+    DistributedRateLimiter,
+    DistributedTenantLock,
+    InMemoryRedisClient,
+    ThreatIntelRedisCache,
+    get_redis_client,
+    set_redis_client,
+)
 
 __all__ = [
     "ActionTaken",
+    "AsyncRedisClient",
     "BaseDTO",
     "BaseEventDTO",
     "ComponentHealthDTO",
     "ConfigurationError",
     "DependencyError",
+    "DistributedRateLimiter",
+    "DistributedTenantLock",
     "ErrorDetailDTO",
     "HealthStatusDTO",
+    "InMemoryRedisClient",
     "LogFormat",
     "RateLimitExceededError",
     "ResourceNotFoundError",
@@ -44,6 +57,9 @@ __all__ = [
     "ServiceUnavailableError",
     "SystemEnvironment",
     "ThreatCategory",
+    "ThreatIntelRedisCache",
     "ValidationError",
     "Verdict",
+    "get_redis_client",
+    "set_redis_client",
 ]

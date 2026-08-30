@@ -43,6 +43,7 @@ from src.ingestion_gateway.providers.base import (
 from src.ingestion_gateway.providers.gmail_daemon import GmailIngestionDaemon
 from src.ingestion_gateway.providers.imap_daemon import IMAPIngestionDaemon
 from src.ingestion_gateway.providers.msgraph_daemon import MSGraphIngestionDaemon
+from src.ingestion_gateway.redis_dedup import RedisIngestionDeduplicationEngine
 from src.ingestion_gateway.webhook_handler import (
     MailboxDaemonRegistry,
     get_daemon_registry,
@@ -62,6 +63,7 @@ __all__ = [
     "DeadLetterItemDTO",
     # Deduplication & Dead Letter Queue
     "IngestionDeduplicationEngine",
+    "RedisIngestionDeduplicationEngine",
     "DeadLetterQueue",
     # Persistence Adapters (Module 22)
     "IDeadLetterStorage",
