@@ -24,6 +24,11 @@ from src.threat_intel.models import (
 )
 from src.threat_intel.module import ThreatIntelModule, register_threat_intel_module
 from src.threat_intel.pipeline import ThreatIntelPipeline
+from src.threat_intel.providers.live_abuseipdb import LiveAbuseIPDBV2Provider
+from src.threat_intel.providers.live_safebrowsing import (
+    LiveGoogleSafeBrowsingV4Provider,
+)
+from src.threat_intel.providers.live_virustotal import LiveVirusTotalV3Provider
 
 __all__ = [
     "CircuitBreakerOpenError",
@@ -33,6 +38,9 @@ __all__ = [
     "IOCNodeDTO",
     "IOCRelationshipGraph",
     "IOCTargetDetailDTO",
+    "LiveAbuseIPDBV2Provider",
+    "LiveGoogleSafeBrowsingV4Provider",
+    "LiveVirusTotalV3Provider",
     "ProviderLookupError",
     "ProviderRateLimitError",
     "ReputationCache",

@@ -76,6 +76,30 @@ class EnterpriseSettings(BaseSettings):
     redis_timeout_sec: float = Field(default=2.0)
     redis_fallback_to_memory: bool = Field(default=True)
 
+    # Production Hardening Phase 2: Live Threat Intelligence Providers & Resilience
+    virustotal_api_key: SecretStr | None = Field(default=None)
+    virustotal_endpoint: str = Field(default="https://www.virustotal.com/api/v3")
+    virustotal_timeout_sec: float = Field(default=3.0)
+    virustotal_cache_ttl_sec: int = Field(default=86400)
+    virustotal_rate_limit_per_min: int = Field(default=4)  # Free tier default: 4 req/min
+
+    google_safe_browsing_api_key: SecretStr | None = Field(default=None)
+    google_safe_browsing_endpoint: str = Field(
+        default="https://safebrowsing.googleapis.com/v4/threatMatches:find"
+    )
+    google_safe_browsing_timeout_sec: float = Field(default=2.5)
+    google_safe_browsing_cache_ttl_sec: int = Field(default=3600)
+    google_safe_browsing_rate_limit_per_min: int = Field(default=60)
+
+    abuseipdb_api_key: SecretStr | None = Field(default=None)
+    abuseipdb_endpoint: str = Field(default="https://api.abuseipdb.com/api/v2/check")
+    abuseipdb_timeout_sec: float = Field(default=2.5)
+    abuseipdb_cache_ttl_sec: int = Field(default=43200)
+    abuseipdb_rate_limit_per_min: int = Field(default=60)
+
+    threat_intel_circuit_breaker_threshold: int = Field(default=5)
+    threat_intel_circuit_breaker_cooldown_sec: float = Field(default=60.0)
+
     # Runtime overrides dictionary
     _overrides: dict[str, Any] = {}
 

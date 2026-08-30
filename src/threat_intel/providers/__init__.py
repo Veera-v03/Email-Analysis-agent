@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from src.threat_intel.providers.abuseipdb import AbuseIPDBProvider
 from src.threat_intel.providers.google_safe_browsing import GoogleSafeBrowsingProvider
+from src.threat_intel.providers.live_abuseipdb import LiveAbuseIPDBV2Provider
+from src.threat_intel.providers.live_safebrowsing import (
+    LiveGoogleSafeBrowsingV4Provider,
+)
+from src.threat_intel.providers.live_virustotal import LiveVirusTotalV3Provider
 from src.threat_intel.providers.openphish import OpenPhishProvider
 from src.threat_intel.providers.otx import AlienVaultOTXProvider
 from src.threat_intel.providers.phishtank import PhishTankProvider
@@ -14,6 +19,9 @@ __all__ = [
     "AbuseIPDBProvider",
     "AlienVaultOTXProvider",
     "GoogleSafeBrowsingProvider",
+    "LiveAbuseIPDBV2Provider",
+    "LiveGoogleSafeBrowsingV4Provider",
+    "LiveVirusTotalV3Provider",
     "OpenPhishProvider",
     "PhishTankProvider",
     "VirusTotalProvider",
