@@ -1,4 +1,4 @@
-"""Cyber Security Command Center UI module rendering an ultra-sleek, immersive dark-mode frontend with Gmail integration."""
+"""Cyber Security Command Center UI module rendering an ultra-sleek, immersive dark-mode frontend with dynamic v1.0-hardening5 integration."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ def render_cyber_ui_html() -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScamShield - Cyber Threat Command Center</title>
+    <title>ScamON - Cyber Threat Command Center</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,12 +24,15 @@ def render_cyber_ui_html() -> str:
             --bg-card-hover: rgba(16, 32, 58, 0.85);
             --border-cyan: rgba(0, 243, 255, 0.3);
             --border-red: rgba(255, 0, 85, 0.4);
+            --border-amber: rgba(255, 183, 0, 0.4);
             --cyan-glow: #00f3ff;
             --cyan-dim: rgba(0, 243, 255, 0.15);
             --red-glow: #ff0055;
             --red-dim: rgba(255, 0, 85, 0.15);
             --amber-glow: #ffb700;
+            --amber-dim: rgba(255, 183, 0, 0.15);
             --green-glow: #00ff88;
+            --green-dim: rgba(0, 255, 136, 0.15);
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --text-cyber: #38bdf8;
@@ -53,7 +56,7 @@ def render_cyber_ui_html() -> str:
             position: relative;
         }
 
-        /* Matrix & Mesh Canvas */
+        /* Matrix Canvas */
         #cyber-canvas {
             position: fixed;
             top: 0;
@@ -88,6 +91,8 @@ def render_cyber_ui_html() -> str:
             align-items: center;
             justify-content: space-between;
             position: relative;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         header.hud-header::before {
@@ -142,7 +147,8 @@ def render_cyber_ui_html() -> str:
         .hud-status-bar {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .status-pill {
@@ -150,11 +156,12 @@ def render_cyber_ui_html() -> str:
             align-items: center;
             gap: 8px;
             font-family: var(--font-code);
-            font-size: 12px;
+            font-size: 11px;
             background: rgba(0, 243, 255, 0.08);
             border: 1px solid rgba(0, 243, 255, 0.25);
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 20px;
+            white-space: nowrap;
         }
 
         .status-dot {
@@ -171,6 +178,11 @@ def render_cyber_ui_html() -> str:
             box-shadow: 0 0 8px var(--red-glow);
         }
 
+        .status-dot.degraded {
+            background: var(--amber-glow);
+            box-shadow: 0 0 8px var(--amber-glow);
+        }
+
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
@@ -181,14 +193,14 @@ def render_cyber_ui_html() -> str:
             border: 1px solid var(--cyan-glow);
             color: #ffffff;
             font-family: var(--font-head);
-            font-size: 12px;
-            padding: 10px 18px;
+            font-size: 11px;
+            padding: 8px 14px;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             letter-spacing: 1px;
             text-decoration: none;
         }
@@ -222,7 +234,7 @@ def render_cyber_ui_html() -> str:
             box-shadow: 0 0 20px rgba(66, 133, 244, 0.8);
         }
 
-        /* Hero Wireframe Card */
+        /* Hero Banner */
         .hero-banner {
             background: rgba(5, 12, 26, 0.9);
             border: 1px solid var(--border-cyan);
@@ -267,7 +279,7 @@ def render_cyber_ui_html() -> str:
 
         .hero-title {
             font-family: var(--font-head);
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 900;
             line-height: 1.2;
             color: #ffffff;
@@ -285,7 +297,7 @@ def render_cyber_ui_html() -> str:
             line-height: 1.6;
         }
 
-        /* Pre-set Scenario Chips */
+        /* Preset Chips */
         .preset-container {
             display: flex;
             flex-wrap: wrap;
@@ -321,7 +333,7 @@ def render_cyber_ui_html() -> str:
             color: var(--red-glow);
         }
 
-        /* Hero Graphic Display - Low Poly Wireframe & Warning Triangle */
+        /* Hero Graphic Display */
         .hero-graphic {
             position: relative;
             height: 240px;
@@ -348,17 +360,11 @@ def render_cyber_ui_html() -> str:
             flex-direction: column;
             align-items: center;
             gap: 10px;
-            animation: float 4s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
         }
 
         .triangle-icon-wrapper {
             position: relative;
-            width: 90px;
+            width: 80px;
             height: 80px;
             display: flex;
             align-items: center;
@@ -367,34 +373,30 @@ def render_cyber_ui_html() -> str:
 
         .triangle-glow-bg {
             position: absolute;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, rgba(255,0,85,0.5) 0%, transparent 70%);
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            animation: glow-pulse 2s infinite alternate;
+            background: radial-gradient(circle, rgba(255,0,85,0.4) 0%, transparent 70%);
+            animation: pulse-glow 2s infinite alternate;
         }
 
-        @keyframes glow-pulse {
+        @keyframes pulse-glow {
             0% { transform: scale(0.9); opacity: 0.5; }
             100% { transform: scale(1.3); opacity: 0.9; }
         }
 
         .warning-svg {
-            width: 75px;
-            height: 75px;
-            filter: drop-shadow(0 0 15px #ff0055);
+            width: 70px;
+            height: 65px;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.8));
         }
 
         .hud-digital-tag {
             font-family: var(--font-head);
-            font-size: 12px;
+            font-size: 11px;
             letter-spacing: 3px;
             color: var(--cyan-glow);
-            border: 1px solid var(--cyan-glow);
-            padding: 4px 14px;
-            border-radius: 4px;
-            background: rgba(0, 0, 0, 0.6);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+            text-shadow: 0 0 8px var(--cyan-glow);
         }
 
         /* Navigation Tabs */
@@ -448,7 +450,7 @@ def render_cyber_ui_html() -> str:
         /* Grid Layout for Scanner */
         .scanner-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1.15fr;
             gap: 20px;
         }
 
@@ -510,7 +512,7 @@ def render_cyber_ui_html() -> str:
             justify-content: space-between;
         }
 
-        .form-input, .form-textarea, .form-select {
+        .form-input, .form-textarea {
             background: rgba(3, 7, 18, 0.8);
             border: 1px solid rgba(0, 243, 255, 0.25);
             border-radius: 8px;
@@ -522,7 +524,7 @@ def render_cyber_ui_html() -> str:
             outline: none;
         }
 
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
+        .form-input:focus, .form-textarea:focus {
             border-color: var(--cyan-glow);
             box-shadow: 0 0 12px rgba(0, 243, 255, 0.3);
             background: rgba(5, 15, 30, 0.95);
@@ -569,7 +571,7 @@ def render_cyber_ui_html() -> str:
         .scan-pipeline {
             display: none;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             margin-top: 10px;
         }
 
@@ -607,6 +609,230 @@ def render_cyber_ui_html() -> str:
         .pipeline-step i {
             width: 18px;
             text-align: center;
+        }
+
+        /* Results Display */
+        .verdict-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .verdict-box.MALICIOUS, .verdict-box.PHISHING, .verdict-box.CRITICAL {
+            border-color: var(--red-glow);
+            background: radial-gradient(circle at left, rgba(255,0,85,0.2) 0%, rgba(3,7,18,0.9) 100%);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
+        }
+
+        .verdict-box.SUSPICIOUS, .verdict-box.HIGH {
+            border-color: var(--amber-glow);
+            background: radial-gradient(circle at left, rgba(255,183,0,0.2) 0%, rgba(3,7,18,0.9) 100%);
+            box-shadow: 0 0 30px rgba(255, 183, 0, 0.3);
+        }
+
+        .verdict-box.BENIGN, .verdict-box.SAFE, .verdict-box.CLEAN, .verdict-box.LOW {
+            border-color: var(--green-glow);
+            background: radial-gradient(circle at left, rgba(0,255,136,0.2) 0%, rgba(3,7,18,0.9) 100%);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .verdict-title {
+            font-family: var(--font-head);
+            font-size: 24px;
+            letter-spacing: 2px;
+            font-weight: 900;
+        }
+
+        .verdict-box.MALICIOUS .verdict-title, .verdict-box.PHISHING .verdict-title, .verdict-box.CRITICAL .verdict-title { color: var(--red-glow); }
+        .verdict-box.SUSPICIOUS .verdict-title, .verdict-box.HIGH .verdict-title { color: var(--amber-glow); }
+        .verdict-box.BENIGN .verdict-title, .verdict-box.SAFE .verdict-title, .verdict-box.CLEAN .verdict-title, .verdict-box.LOW .verdict-title { color: var(--green-glow); }
+
+        .badges-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge-tag {
+            font-family: var(--font-code);
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-priority {
+            font-weight: 700;
+            border-color: var(--red-glow);
+            background: var(--red-dim);
+            color: var(--red-glow);
+        }
+
+        /* Risk Metric Strip */
+        .risk-metric-card {
+            background: rgba(4, 11, 24, 0.85);
+            border: 1px solid var(--border-cyan);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .score-display-wrapper {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .score-val-big {
+            font-family: var(--font-head);
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--cyan-glow);
+        }
+
+        .score-max {
+            font-family: var(--font-code);
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Factor Breakdown Table */
+        .factor-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .factor-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 243, 255, 0.15);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .factor-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-code);
+            font-size: 12px;
+        }
+
+        .factor-name {
+            color: var(--cyan-glow);
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .factor-pts {
+            color: var(--red-glow);
+            font-weight: 700;
+        }
+
+        .factor-reason {
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        /* MITRE & IoC Badges */
+        .chips-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .mitre-chip {
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid var(--red-glow);
+            color: #ff99bb;
+            font-family: var(--font-code);
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ioc-chip {
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--cyan-glow);
+            font-family: var(--font-code);
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            word-break: break-all;
+        }
+
+        /* Evidence Cards */
+        .evidence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .evidence-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .evidence-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-code);
+            font-size: 11px;
+        }
+
+        .evidence-desc {
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        /* Analyst Notes Box */
+        .notes-box {
+            background: rgba(3, 7, 18, 0.85);
+            border-left: 3px solid var(--cyan-glow);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-family: var(--font-code);
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            white-space: pre-wrap;
         }
 
         /* Gmail Cards Grid */
@@ -689,93 +915,6 @@ def render_cyber_ui_html() -> str:
             margin-top: 4px;
         }
 
-        /* Results Display */
-        .verdict-box {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-
-        .verdict-box.MALICIOUS, .verdict-box.PHISHING {
-            border-color: var(--red-glow);
-            background: radial-gradient(circle, rgba(255,0,85,0.15) 0%, rgba(3,7,18,0.9) 100%);
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
-        }
-
-        .verdict-box.SUSPICIOUS {
-            border-color: var(--amber-glow);
-            background: radial-gradient(circle, rgba(255,183,0,0.15) 0%, rgba(3,7,18,0.9) 100%);
-            box-shadow: 0 0 30px rgba(255, 183, 0, 0.3);
-        }
-
-        .verdict-box.BENIGN, .verdict-box.SAFE, .verdict-box.CLEAN {
-            border-color: var(--green-glow);
-            background: radial-gradient(circle, rgba(0,255,136,0.15) 0%, rgba(3,7,18,0.9) 100%);
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .verdict-title {
-            font-family: var(--font-head);
-            font-size: 28px;
-            letter-spacing: 3px;
-        }
-
-        .verdict-box.MALICIOUS .verdict-title, .verdict-box.PHISHING .verdict-title { color: var(--red-glow); }
-        .verdict-box.SUSPICIOUS .verdict-title { color: var(--amber-glow); }
-        .verdict-box.BENIGN .verdict-title, .verdict-box.SAFE .verdict-title { color: var(--green-glow); }
-
-        .confidence-badge {
-            font-family: var(--font-code);
-            font-size: 14px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        /* Evidence Cards */
-        .evidence-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 340px;
-            overflow-y: auto;
-            padding-right: 6px;
-        }
-
-        .evidence-item {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(0, 243, 255, 0.15);
-            border-radius: 8px;
-            padding: 12px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .evidence-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-family: var(--font-code);
-            font-size: 12px;
-            color: var(--cyan-glow);
-        }
-
-        .evidence-desc {
-            font-size: 13px;
-            color: var(--text-main);
-            line-height: 1.4;
-        }
-
         /* History Table */
         .cyber-table {
             width: 100%;
@@ -822,7 +961,7 @@ def render_cyber_ui_html() -> str:
         /* Telemetry Cards */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px;
         }
 
@@ -830,15 +969,15 @@ def render_cyber_ui_html() -> str:
             background: rgba(6, 15, 30, 0.7);
             border: 1px solid var(--border-cyan);
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             display: flex;
             align-items: center;
             gap: 16px;
         }
 
         .metric-icon {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             background: rgba(0, 243, 255, 0.1);
             border: 1px solid var(--cyan-glow);
@@ -846,12 +985,12 @@ def render_cyber_ui_html() -> str:
             align-items: center;
             justify-content: center;
             color: var(--cyan-glow);
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .metric-val {
             font-family: var(--font-head);
-            font-size: 22px;
+            font-size: 20px;
             color: #fff;
         }
 
@@ -893,7 +1032,7 @@ def render_cyber_ui_html() -> str:
     </style>
 </head>
 <body>
-    <!-- Canvas for Binary Rain & Hacker Wireframe Mesh -->
+    <!-- Matrix Rain Canvas -->
     <canvas id="cyber-canvas"></canvas>
 
     <div class="app-container">
@@ -909,12 +1048,28 @@ def render_cyber_ui_html() -> str:
                 </div>
             </div>
             <div class="hud-status-bar">
+                <div id="status-api" class="status-pill">
+                    <div id="dot-api" class="status-dot"></div>
+                    <span id="txt-api">API: CONNECTED</span>
+                </div>
+                <div id="status-db" class="status-pill">
+                    <div id="dot-db" class="status-dot"></div>
+                    <span id="txt-db">DB: VERIFYING</span>
+                </div>
+                <div id="status-redis" class="status-pill">
+                    <div id="dot-redis" class="status-dot"></div>
+                    <span id="txt-redis">REDIS: VERIFYING</span>
+                </div>
+                <div id="status-pgvector" class="status-pill">
+                    <div id="dot-pgvector" class="status-dot"></div>
+                    <span id="txt-pgvector">PGVECTOR: VERIFYING</span>
+                </div>
                 <div id="gmail-status-pill" class="status-pill">
                     <div id="gmail-status-dot" class="status-dot disconnected"></div>
-                    <span id="gmail-status-text">GMAIL DISCONNECTED</span>
+                    <span id="gmail-status-text">GMAIL: CHECKING</span>
                 </div>
                 <a id="btn-connect-gmail" href="/auth/google/login" class="hud-btn hud-btn-google">
-                    <i class="fa-brands fa-google"></i> CONNECT GMAIL
+                    <i class="fa-brands fa-google"></i> GMAIL AUTH
                 </a>
                 <button class="hud-btn" onclick="openAuthModal()">
                     <i class="fa-solid fa-key"></i> AUTH KEYS
@@ -922,29 +1077,29 @@ def render_cyber_ui_html() -> str:
             </div>
         </header>
 
-        <!-- Hero Cyber Security Visual Banner (Low Poly Wireframe & Warning Triangle) -->
+        <!-- Hero Cyber Security Visual Banner -->
         <div class="hero-banner">
             <div class="hero-text">
                 <div class="cyber-badge">
-                    <i class="fa-solid fa-triangle-exclamation"></i> THREAT INTELLIGENCE AGENT
+                    <i class="fa-solid fa-triangle-exclamation"></i> ADVANCED EMAIL ANALYSIS AGENT
                 </div>
                 <h2 class="hero-title">CYBER SECURITY <span>THREAT ANALYSIS</span></h2>
                 <p class="hero-desc">
-                    AI-powered email investigation pipeline combining SPF/DKIM validation, URL typosquatting detection, OCR/QR code extraction, durable campaign memory correlation, and explainable threat scoring.
+                    Multi-step agentic investigation pipeline powered by neural embeddings, pgvector semantic memory, factor-weighted explainable risk scoring, and real-time security intelligence.
                 </p>
                 <div class="preset-container">
                     <span style="font-family: var(--font-code); font-size: 11px; color: var(--text-cyber); width: 100%;">LOAD TEST SCENARIOS:</span>
                     <div class="preset-chip danger" onclick="loadPreset('phishing')">
-                        <i class="fa-solid fa-bolt"></i> PayPal Banking Scam
+                        <i class="fa-solid fa-bolt"></i> M365 Credential Alert
                     </div>
-                    <div class="preset-chip danger" onclick="loadPreset('qr')">
-                        <i class="fa-solid fa-qrcode"></i> Malicious QR Invoice
+                    <div class="preset-chip danger" onclick="loadPreset('paypal')">
+                        <i class="fa-solid fa-building-columns"></i> PayPal Urgent Restriction
                     </div>
                     <div class="preset-chip danger" onclick="loadPreset('ceo')">
-                        <i class="fa-solid fa-user-secret"></i> CEO Wire Transfer
+                        <i class="fa-solid fa-user-secret"></i> Urgent Wire Transfer
                     </div>
                     <div class="preset-chip" onclick="loadPreset('clean')">
-                        <i class="fa-solid fa-circle-check"></i> Legitimate HR Memo
+                        <i class="fa-solid fa-circle-check"></i> Safe Meeting Memo
                     </div>
                 </div>
             </div>
@@ -958,7 +1113,6 @@ def render_cyber_ui_html() -> str:
                             <stop offset="100%" stop-color="#ff0055" stop-opacity="0.6"/>
                         </linearGradient>
                     </defs>
-                    <!-- Low poly wireframe hacker silhouette connections -->
                     <g stroke="url(#cyber-grad)" stroke-width="1" fill="none" opacity="0.4">
                         <polygon points="120,180 160,130 200,160 240,130 280,180" />
                         <polygon points="160,130 200,80 240,130" />
@@ -968,11 +1122,9 @@ def render_cyber_ui_html() -> str:
                         <line x1="280" y1="180" x2="320" y2="180" />
                         <line x1="160" y1="130" x2="110" y2="110" />
                         <line x1="240" y1="130" x2="290" y2="110" />
-                        <!-- Grid ground lines -->
                         <line x1="0" y1="190" x2="400" y2="190" stroke="#00f3ff" stroke-width="1.5" opacity="0.6"/>
                         <line x1="0" y1="195" x2="400" y2="195" stroke="#ff0055" stroke-width="1" opacity="0.4"/>
                     </g>
-                    <!-- Floating Nodes -->
                     <circle cx="200" cy="80" r="3" fill="#00f3ff"/>
                     <circle cx="160" cy="130" r="3" fill="#ff0055"/>
                     <circle cx="240" cy="130" r="3" fill="#00f3ff"/>
@@ -990,7 +1142,7 @@ def render_cyber_ui_html() -> str:
                             <circle cx="50" cy="66" r="4.5" fill="#ff0055"/>
                         </svg>
                     </div>
-                    <div class="hud-digital-tag">DIGITAL SECURITY</div>
+                    <div class="hud-digital-tag">SOC AGENT ACTIVE</div>
                 </div>
             </div>
         </div>
@@ -1029,12 +1181,12 @@ def render_cyber_ui_html() -> str:
                     <form id="investigate-form" onsubmit="handleInvestigate(event)" style="display: flex; flex-direction: column; gap: 14px;">
                         <div class="form-group">
                             <label class="form-label">Sender Email Address</label>
-                            <input type="text" id="input-sender" class="form-input" placeholder="e.g. security-update@paypal-support-verify.com" required>
+                            <input type="text" id="input-sender" class="form-input" placeholder="e.g. security@microsoft-support.example" required>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Email Subject Line</label>
-                            <input type="text" id="input-subject" class="form-input" placeholder="e.g. Urgent: Account suspended - Verify transaction immediately" required>
+                            <input type="text" id="input-subject" class="form-input" placeholder="e.g. Microsoft 365 account security alert" required>
                         </div>
 
                         <div class="form-group">
@@ -1043,18 +1195,18 @@ def render_cyber_ui_html() -> str:
                         </div>
 
                         <button type="submit" id="btn-scan" class="scan-submit-btn">
-                            <i class="fa-solid fa-crosshairs"></i> RUN THREAT SCAN
+                            <i class="fa-solid fa-crosshairs"></i> INITIATE THREAT SCAN
                         </button>
                     </form>
 
                     <!-- Scan Radar Steps -->
                     <div id="scan-pipeline" class="scan-pipeline">
-                        <div id="step-1" class="pipeline-step"><i class="fa-solid fa-file-code"></i> <span>1. Parsing Header & Payload Structure</span></div>
-                        <div id="step-2" class="pipeline-step"><i class="fa-solid fa-shield-virus"></i> <span>2. Sender Infrastructure & SPF/DKIM Verification</span></div>
-                        <div id="step-3" class="pipeline-step"><i class="fa-solid fa-link"></i> <span>3. URL Typosquatting & Domain Inspection</span></div>
-                        <div id="step-4" class="pipeline-step"><i class="fa-solid fa-qrcode"></i> <span>4. OCR Text & QR Payload Analysis</span></div>
-                        <div id="step-5" class="pipeline-step"><i class="fa-solid fa-database"></i> <span>5. Vector Memory & Threat Intelligence Query</span></div>
-                        <div id="step-6" class="pipeline-step"><i class="fa-solid fa-brain"></i> <span>6. LLM Reasoning & Explainable Scoring Report</span></div>
+                        <div id="step-1" class="pipeline-step"><i class="fa-solid fa-file-code"></i> <span>1. Parsing Header, Structure & Security Tools</span></div>
+                        <div id="step-2" class="pipeline-step"><i class="fa-solid fa-shield-virus"></i> <span>2. Sender Infrastructure & Impersonation Analysis</span></div>
+                        <div id="step-3" class="pipeline-step"><i class="fa-solid fa-link"></i> <span>3. URL Typosquatting & Link Inspection</span></div>
+                        <div id="step-4" class="pipeline-step"><i class="fa-solid fa-user-secret"></i> <span>4. NLP Social Engineering & Urgency Analysis</span></div>
+                        <div id="step-5" class="pipeline-step"><i class="fa-solid fa-database"></i> <span>5. pgvector Semantic Memory & Historical RAG</span></div>
+                        <div id="step-6" class="pipeline-step"><i class="fa-solid fa-brain"></i> <span>6. LLM Multi-Step Reasoning & Factor Risk Scoring</span></div>
                     </div>
                 </div>
 
@@ -1067,7 +1219,7 @@ def render_cyber_ui_html() -> str:
                         <span id="scan-time-tag" style="font-family: var(--font-code); font-size: 11px; color: var(--text-muted);">AWAITING SCAN</span>
                     </div>
 
-                    <div id="results-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 320px; gap: 14px; color: var(--text-muted);">
+                    <div id="results-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 380px; gap: 14px; color: var(--text-muted);">
                         <i class="fa-solid fa-radar" style="font-size: 48px; color: var(--cyan-glow); opacity: 0.5;"></i>
                         <p style="font-family: var(--font-code); font-size: 13px;">Submit an email investigation or pick a scenario above to start scanning.</p>
                     </div>
@@ -1075,21 +1227,81 @@ def render_cyber_ui_html() -> str:
                     <div id="results-container" style="display: none; flex-direction: column; gap: 16px;">
                         <!-- Verdict Header -->
                         <div id="verdict-banner" class="verdict-box BENIGN">
-                            <div id="verdict-text" class="verdict-title">SAFE</div>
-                            <div id="confidence-tag" class="confidence-badge">Confidence: 98%</div>
+                            <div>
+                                <div id="verdict-text" class="verdict-title">SAFE</div>
+                                <div id="threat-class-text" style="font-family: var(--font-code); font-size: 12px; color: var(--text-cyber); margin-top: 4px;"></div>
+                            </div>
+                            <div class="badges-group">
+                                <div id="confidence-tag" class="badge-tag"><i class="fa-solid fa-bullseye"></i> Confidence: 98%</div>
+                                <div id="priority-tag" class="badge-tag badge-priority"><i class="fa-solid fa-flag"></i> P4</div>
+                            </div>
                         </div>
 
-                        <!-- Key Risk Factors -->
+                        <!-- Risk Score Gauge & Metric Card -->
+                        <div class="risk-metric-card">
+                            <div>
+                                <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-muted); text-transform: uppercase;">FACTOR-WEIGHTED RISK SCORE</div>
+                                <div class="score-display-wrapper">
+                                    <span id="risk-score-num" class="score-val-big">0.0</span>
+                                    <span class="score-max">/ 100.0</span>
+                                </div>
+                            </div>
+                            <div id="risk-tier-badge" class="badge-tag" style="font-size: 13px; font-weight: 700;">LOW RISK</div>
+                        </div>
+
+                        <!-- Score Breakdown -->
                         <div class="form-group">
-                            <label class="form-label">EVIDENCE & RISK BREAKDOWN</label>
+                            <label class="form-label">
+                                <span><i class="fa-solid fa-scale-balanced"></i> RISK SCORE BREAKDOWN</span>
+                                <span id="factor-count-tag" style="color: var(--text-muted); font-size: 11px;">0 FACTORS</span>
+                            </label>
+                            <div id="score-breakdown-list" class="factor-grid">
+                                <!-- Dynamic Breakdown items -->
+                            </div>
+                        </div>
+
+                        <!-- MITRE ATT&CK & Threat Indicators -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <span><i class="fa-solid fa-sitemap"></i> MITRE ATT&CK TACTICAL MAPPINGS</span>
+                            </label>
+                            <div id="mitre-list" class="chips-cloud">
+                                <!-- Dynamic MITRE chips -->
+                            </div>
+                        </div>
+
+                        <!-- Indicators of Compromise (IoCs) -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <span><i class="fa-solid fa-fingerprint"></i> EXTRACTED INDICATORS OF COMPROMISE (IoCs)</span>
+                            </label>
+                            <div id="iocs-list" class="chips-cloud">
+                                <!-- Dynamic IoC chips -->
+                            </div>
+                        </div>
+
+                        <!-- Analyst Notes & Reasoning -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <span><i class="fa-solid fa-user-shield"></i> ANALYST NOTES & REASONING SUMMARY</span>
+                            </label>
+                            <div id="analyst-notes-content" class="notes-box"></div>
+                        </div>
+
+                        <!-- Evidence Collection Explorer -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <span><i class="fa-solid fa-list-check"></i> SECURITY EVIDENCE COLLECTION</span>
+                                <span id="evidence-count-tag" style="color: var(--text-muted); font-size: 11px;">0 ITEMS</span>
+                            </label>
                             <div id="evidence-list" class="evidence-list">
-                                <!-- Dynamic items -->
+                                <!-- Dynamic Evidence items -->
                             </div>
                         </div>
 
                         <!-- Raw JSON Toggle -->
                         <button class="hud-btn" style="width: fit-content;" onclick="toggleJsonView()">
-                            <i class="fa-solid fa-code"></i> TOGGLE RAW JSON REPORT
+                            <i class="fa-solid fa-code"></i> TOGGLE RAW JSON RESPONSE
                         </button>
                         <pre id="json-raw-view" class="json-view" style="display: none;"></pre>
                     </div>
@@ -1158,7 +1370,7 @@ def render_cyber_ui_html() -> str:
                                 <th>SUBJECT</th>
                                 <th>VERDICT</th>
                                 <th>RISK LEVEL</th>
-                                <th>LATENCY</th>
+                                <th>SCORE</th>
                             </tr>
                         </thead>
                         <tbody id="history-tbody">
@@ -1178,7 +1390,7 @@ def render_cyber_ui_html() -> str:
                     <div class="card-title">
                         <i class="fa-solid fa-brain"></i> HYBRID THREAT MEMORY SEARCH
                     </div>
-                    <span style="font-family: var(--font-code); font-size: 11px; color: var(--text-cyber);">GET /api/v1/memory/search</span>
+                    <span style="font-family: var(--font-code); font-size: 11px; color: var(--text-cyber);">POST /api/v1/memory/search</span>
                 </div>
                 <div style="display: flex; gap: 12px;">
                     <input type="text" id="memory-search-input" class="form-input" style="flex: 1;" placeholder="Search threat vectors, e.g. 'paypal phishing' or 'credential harvest'...">
@@ -1203,24 +1415,24 @@ def render_cyber_ui_html() -> str:
                     </div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-icon"><i class="fa-solid fa-microchip"></i></div>
-                    <div>
-                        <div id="metric-cpu" class="metric-val">1.2%</div>
-                        <div class="metric-lbl">SYSTEM CPU USAGE</div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-icon"><i class="fa-solid fa-memory"></i></div>
-                    <div>
-                        <div id="metric-mem" class="metric-val">124 MB</div>
-                        <div class="metric-lbl">MEMORY ALLOCATION</div>
-                    </div>
-                </div>
-                <div class="metric-card">
                     <div class="metric-icon"><i class="fa-solid fa-database"></i></div>
                     <div>
                         <div id="metric-db" class="metric-val">CONNECTED</div>
-                        <div class="metric-lbl">SQLITE DB ENGINE</div>
+                        <div class="metric-lbl">POSTGRESQL DB</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <div>
+                        <div id="metric-redis" class="metric-val">CONNECTED</div>
+                        <div class="metric-lbl">REDIS CACHE & LOCK</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fa-solid fa-vector-square"></i></div>
+                    <div>
+                        <div id="metric-pgvector" class="metric-val">CONNECTED</div>
+                        <div class="metric-lbl">PGVECTOR MEMORY</div>
                     </div>
                 </div>
             </div>
@@ -1232,7 +1444,9 @@ def render_cyber_ui_html() -> str:
                 <div style="display: flex; gap: 14px; flex-wrap: wrap;">
                     <a href="/docs" target="_blank" class="hud-btn"><i class="fa-solid fa-book"></i> OPEN SWAGGER UI (/docs)</a>
                     <a href="/redoc" target="_blank" class="hud-btn"><i class="fa-solid fa-file-lines"></i> OPEN REDOC (/redoc)</a>
-                    <a href="/health" target="_blank" class="hud-btn"><i class="fa-solid fa-code"></i> RAW /health METRICS</a>
+                    <a href="/health" target="_blank" class="hud-btn"><i class="fa-solid fa-code"></i> RAW /health</a>
+                    <a href="/ready" target="_blank" class="hud-btn"><i class="fa-solid fa-server"></i> RAW /ready</a>
+                    <a href="/metrics" target="_blank" class="hud-btn"><i class="fa-solid fa-chart-simple"></i> RAW /metrics</a>
                 </div>
             </div>
         </div>
@@ -1257,34 +1471,34 @@ def render_cyber_ui_html() -> str:
     </div>
 
     <script>
-        // Preset Scenarios Data
+        // Realistic Test Scenarios
         const PRESETS = {
             phishing: {
-                sender: "security-alert@paypal-login-verify.com",
-                subject: "Urgent: Unusual sign-in activity detected on your PayPal account",
-                body: "Dear Customer,\\n\\nWe detected an unauthorized login attempt to your PayPal account from an unknown IP address in Moscow. Your account access has been restricted.\\n\\nTo restore access immediately, please click the secure link below and verify your banking details:\\nhttp://paypal-verification-secure-portal.com/login\\n\\nIf you do not complete this within 24 hours, your account will be permanently closed.\\n\\nSecurity Department"
+                sender: "admin@microsoft-secure-login.com",
+                subject: "Microsoft 365 Security Alert",
+                body: "Hello,\\n\\nYour Microsoft 365 account requires immediate security verification.\\n\\nWe noticed a recent sign-in attempt from an unfamiliar location.\\n\\nPlease verify your account here:\\nhttps://micros0ft-secure-login.com/verify\\n\\nFailure to verify your account within 12 hours may result in temporary account suspension.\\n\\nMicrosoft 365 Security Team"
             },
-            qr: {
-                sender: "billing@vendor-invoices-service.net",
-                subject: "Invoice #INV-2026-8841 Overdue Payment Notice",
-                body: "Attention Accounts Payable,\\n\\nPlease find the attached invoice #INV-2026-8841 for recent cloud migration services.\\n\\nTo complete payment via instant encrypted transfer, please scan the QR code included in this message:\\n[QR CODE DATA: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA... url=https://malicious-qr-gateway.test/pay]\\n\\nPrompt payment is required to prevent service disruption."
+            paypal: {
+                sender: "security@paypa1-support.com",
+                subject: "URGENT: Your PayPal account will be suspended",
+                body: "Dear Customer,\\n\\nYour PayPal account has been temporarily restricted.\\n\\nWe detected unusual activity on your account. You must verify your identity within 24 hours or your account will be permanently suspended.\\n\\nClick here immediately to verify your account:\\nhttp://paypa1-support.com/verify\\n\\nPlease provide your username, password, and card information to complete verification.\\n\\nPayPal Security Team"
             },
             ceo: {
-                sender: "ceo-office@company-corp-executive.com",
-                subject: "Confidential Wire Transfer Request - Urgent",
+                sender: "ceo@company-corp-executive.com",
+                subject: "URGENT: Confidential Wire Transfer Request",
                 body: "Hi Team,\\n\\nI am currently in an urgent board meeting and unable to take phone calls. We are finalizing an acquisition today and need an immediate wire transfer of $48,500 to our external counsel's escrow account.\\n\\nPlease process this wire transfer immediately to Account #984128501 (Routing: 121000358). Keep this strictly confidential until the official press release.\\n\\nThanks,\\nExecutive Management"
             },
             clean: {
-                sender: "hr@enterprise-corp.com",
-                subject: "Quarterly All-Hands Meeting & Company Updates",
-                body: "Hello Everyone,\\n\\nOur Q3 All-Hands Meeting will take place this Thursday at 2:00 PM EST. We will review key accomplishments, revenue milestones, and announce upcoming team initiatives.\\n\\nPlease find the agenda and calendar invite attached. Looking forward to seeing everyone!\\n\\nBest regards,\\nHuman Resources Team"
+                sender: "alice@example.com",
+                subject: "Team sync meeting reminder",
+                body: "Hi team,\\n\\nReminder for our project sync tomorrow at 10am. We will review our current progress and discuss roadmap goals for next sprint.\\n\\nThanks,\\nAlice"
             }
         };
 
         let activeAuthToken = localStorage.getItem("scamshield_token") || "";
         let fetchedGmailMessages = [];
 
-        // Canvas Animations: Matrix Rain & Geometric Mesh
+        // Matrix Rain Canvas
         const canvas = document.getElementById('cyber-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -1324,7 +1538,7 @@ def render_cyber_ui_html() -> str:
         }
         setInterval(drawMatrixRain, 40);
 
-        // Ensure token auto-provisioning
+        // Auto-provision Demo JWT
         async function ensureAuthToken() {
             if (!activeAuthToken) {
                 await requestNewDemoToken();
@@ -1387,22 +1601,63 @@ def render_cyber_ui_html() -> str:
             closeAuthModal();
         }
 
-        // Check Gmail Connection Status
+        // Live Health & Readiness Probes
+        async function checkSystemHealth() {
+            try {
+                const resReady = await fetch('/ready');
+                if (resReady.ok) {
+                    const data = await resReady.json();
+                    const checks = data.checks || {};
+
+                    // DB
+                    const isDbOk = checks.database === 'connected';
+                    document.getElementById('dot-db').className = isDbOk ? 'status-dot' : 'status-dot disconnected';
+                    document.getElementById('txt-db').innerText = isDbOk ? 'DB: CONNECTED' : 'DB: DEGRADED';
+                    document.getElementById('metric-db').innerText = isDbOk ? 'CONNECTED' : 'DEGRADED';
+
+                    // Redis
+                    const isRedisOk = checks.redis === 'connected';
+                    document.getElementById('dot-redis').className = isRedisOk ? 'status-dot' : (checks.redis === 'degraded_in_memory' ? 'status-dot degraded' : 'status-dot disconnected');
+                    document.getElementById('txt-redis').innerText = isRedisOk ? 'REDIS: CONNECTED' : (checks.redis === 'degraded_in_memory' ? 'REDIS: IN-MEMORY' : 'REDIS: DEGRADED');
+                    document.getElementById('metric-redis').innerText = isRedisOk ? 'CONNECTED' : 'IN-MEMORY';
+
+                    // pgvector
+                    const isPgvOk = checks.pgvector === 'connected';
+                    document.getElementById('dot-pgvector').className = isPgvOk ? 'status-dot' : 'status-dot disconnected';
+                    document.getElementById('txt-pgvector').innerText = isPgvOk ? 'PGVECTOR: CONNECTED' : 'PGVECTOR: DEGRADED';
+                    document.getElementById('metric-pgvector').innerText = isPgvOk ? 'CONNECTED' : 'DEGRADED';
+                }
+
+                const resHealth = await fetch('/health');
+                if (resHealth.ok) {
+                    const dataHealth = await resHealth.json();
+                    const isHealthy = dataHealth.status === 'healthy';
+                    document.getElementById('dot-api').className = isHealthy ? 'status-dot' : 'status-dot disconnected';
+                    document.getElementById('txt-api').innerText = isHealthy ? 'API: HEALTHY' : 'API: UNHEALTHY';
+                    document.getElementById('metric-health').innerText = dataHealth.status.toUpperCase();
+                }
+            } catch (err) {
+                console.warn("System readiness probe error:", err);
+                document.getElementById('dot-api').className = 'status-dot disconnected';
+                document.getElementById('txt-api').innerText = 'API: OFFLINE';
+            }
+        }
+
+        // Check Gmail Status
         async function checkGmailStatus() {
             try {
                 const res = await fetch('/api/v1/gmail/status');
                 if (res.ok) {
                     const data = await res.json();
-                    const badge = document.getElementById('gmail-status-badge');
                     const dot = document.getElementById('gmail-status-dot');
                     const txt = document.getElementById('gmail-status-text');
 
                     if (data.connected) {
                         dot.className = 'status-dot';
-                        txt.innerText = 'GMAIL CONNECTED';
+                        txt.innerText = 'GMAIL: CONNECTED';
                     } else {
                         dot.className = 'status-dot disconnected';
-                        txt.innerText = 'GMAIL DISCONNECTED';
+                        txt.innerText = 'GMAIL: DISCONNECTED';
                     }
                 }
             } catch (err) {
@@ -1422,36 +1677,31 @@ def render_cyber_ui_html() -> str:
 
             try {
                 const res = await fetch('/api/v1/gmail/fetch-last-10');
-                loading.style.display = 'none';
-
-                if (res.status === 401) {
-                    notConnected.style.display = 'flex';
-                    return;
-                }
-
                 if (!res.ok) {
+                    loading.style.display = 'none';
                     notConnected.style.display = 'flex';
                     return;
                 }
 
                 const data = await res.json();
-                fetchedGmailMessages = data;
-
-                if (!data || data.length === 0) {
-                    msgList.style.display = 'block';
-                    msgList.innerHTML = '<div style="color: var(--text-muted); font-family: var(--font-code);">No recent emails found in Gmail inbox.</div>';
+                if (!data.connected || !data.messages || data.messages.length === 0) {
+                    loading.style.display = 'none';
+                    notConnected.style.display = 'flex';
                     return;
                 }
 
+                fetchedGmailMessages = data.messages;
+                loading.style.display = 'none';
                 msgList.style.display = 'grid';
-                msgList.innerHTML = data.map((msg, index) => `
+
+                msgList.innerHTML = data.messages.map((msg, index) => `
                     <div class="gmail-card">
                         <div class="gmail-card-header">
                             <span class="gmail-sender"><i class="fa-solid fa-user-ninja"></i> ${escapeHtml(msg.sender)}</span>
                             <span class="gmail-date">${escapeHtml(msg.date || '')}</span>
                         </div>
                         <div class="gmail-subject">${escapeHtml(msg.subject)}</div>
-                        <div class="gmail-snippet">${escapeHtml(msg.snippet || msg.body.substring(0, 140))}</div>
+                        <div class="gmail-snippet">${escapeHtml(msg.snippet || (msg.body ? msg.body.substring(0, 140) : ''))}</div>
                         <div class="gmail-actions">
                             <button class="hud-btn hud-btn-danger" style="font-size: 11px; padding: 8px 14px;" onclick="analyzeGmailMessage(${index})">
                                 <i class="fa-solid fa-bolt"></i> ANALYZE THREAT WITH AI
@@ -1474,39 +1724,37 @@ def render_cyber_ui_html() -> str:
             document.getElementById('input-subject').value = msg.subject;
             document.getElementById('input-body').value = msg.body || msg.snippet;
 
-            // Switch to scanner tab & submit
             switchTab('scanner');
             document.getElementById('investigate-form').requestSubmit();
         }
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Handle Form Investigation Submission
+        // Handle Investigation Submission
         async function handleInvestigate(e) {
             e.preventDefault();
             await ensureAuthToken();
 
-            const sender = document.getElementById('input-sender').value;
-            const subject = document.getElementById('input-subject').value;
-            const body = document.getElementById('input-body').value;
+            const sender = document.getElementById('input-sender').value.trim();
+            const subject = document.getElementById('input-subject').value.trim();
+            const body = document.getElementById('input-body').value.trim();
 
             const submitBtn = document.getElementById('btn-scan');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SCANNING...';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> INVESTIGATING...';
 
             const pipeline = document.getElementById('scan-pipeline');
             pipeline.classList.add('active');
 
-            // Reset steps
+            // Reset step UI
             for (let i = 1; i <= 6; i++) {
                 const step = document.getElementById(`step-${i}`);
                 step.className = 'pipeline-step';
             }
 
-            // Animate steps visually
             let currentStep = 1;
             const stepInterval = setInterval(() => {
                 if (currentStep > 1) {
@@ -1518,7 +1766,7 @@ def render_cyber_ui_html() -> str:
                 } else {
                     clearInterval(stepInterval);
                 }
-            }, 300);
+            }, 350);
 
             const startTime = Date.now();
 
@@ -1532,7 +1780,6 @@ def render_cyber_ui_html() -> str:
                     body: JSON.stringify({ sender, subject, body })
                 });
 
-                // Auto-refresh JWT token if expired and retry request seamlessly
                 if (res.status === 401) {
                     await requestNewDemoToken();
                     res = await fetch('/api/v1/investigate', {
@@ -1547,14 +1794,13 @@ def render_cyber_ui_html() -> str:
 
                 clearInterval(stepInterval);
 
-                // Complete all pipeline steps visually
                 for (let i = 1; i <= 6; i++) {
                     document.getElementById(`step-${i}`).className = 'pipeline-step completed';
                 }
 
                 if (!res.ok) {
                     const err = await res.json();
-                    alert("Scan Error (" + res.status + "): " + (err.detail || err.message || JSON.stringify(err)));
+                    alert("Investigation Pipeline Error (" + res.status + "): " + (err.detail || (err.error ? err.error.message : JSON.stringify(err))));
                     return;
                 }
 
@@ -1563,53 +1809,169 @@ def render_cyber_ui_html() -> str:
 
             } catch (err) {
                 console.error("Investigation error:", err);
-                alert("Scan failed: " + err.message);
+                alert("Investigation failed: " + err.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> RUN THREAT SCAN';
+                submitBtn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> INITIATE THREAT SCAN';
             }
         }
 
-
-        function renderResults(data, latencyMs) {
+        // Render Real v1.0-hardening5 Investigation Output
+        function renderResults(data, clientLatencyMs) {
             document.getElementById('results-placeholder').style.display = 'none';
             const container = document.getElementById('results-container');
             container.style.display = 'flex';
 
-            document.getElementById('scan-time-tag').innerText = `COMPLETED IN ${latencyMs} MS`;
+            const report = data.report || {};
+            const execTime = data.execution_time_ms || (report.execution_statistics ? report.execution_statistics.total_investigation_time_ms : clientLatencyMs);
+            document.getElementById('scan-time-tag').innerText = `EXECUTION TIME: ${execTime} MS`;
 
+            // Verdict & Risk Banner
             const verdictBanner = document.getElementById('verdict-banner');
             const verdictText = document.getElementById('verdict-text');
+            const threatClassText = document.getElementById('threat-class-text');
             const confidenceTag = document.getElementById('confidence-tag');
+            const priorityTag = document.getElementById('priority-tag');
 
-            const verdict = data.verdict || "UNKNOWN";
-            verdictText.innerText = verdict.toUpperCase();
-            confidenceTag.innerText = `Confidence: ${(data.confidence * 100).toFixed(1)}% | Risk Level: ${data.risk_level || 'HIGH'}`;
+            const rawVerdict = data.verdict || report.classification || "UNKNOWN";
+            const riskLevel = (data.risk_level || "MEDIUM").toUpperCase();
+            const confidence = typeof data.confidence === 'number' ? (data.confidence * 100).toFixed(1) : '90.0';
+            const priority = report.recommended_priority || (riskLevel === 'CRITICAL' ? 'P1' : (riskLevel === 'HIGH' ? 'P2' : (riskLevel === 'MEDIUM' ? 'P3' : 'P4')));
 
-            verdictBanner.className = `verdict-box ${verdict.toUpperCase()}`;
+            verdictText.innerText = rawVerdict.toUpperCase();
+            verdictBanner.className = `verdict-box ${riskLevel}`;
 
-            // Render Evidence Cards
-            const evidenceList = document.getElementById('evidence-list');
-            evidenceList.innerHTML = '';
+            const threatClasses = report.threat_classification || [];
+            threatClassText.innerText = threatClasses.length > 0 ? threatClasses.join(' • ') : (report.incident_category ? report.incident_category.toUpperCase() : '');
 
-            const report = data.report || {};
-            const evidenceItems = report.evidence_items || report.key_indicators || [
-                { category: 'Sender Auth', description: 'Sender SPF/DKIM validation completed.', risk: 'LOW' },
-                { category: 'URL Analysis', description: 'Inspected embedded links for typosquatting.', risk: 'MEDIUM' }
-            ];
+            confidenceTag.innerHTML = `<i class="fa-solid fa-bullseye"></i> Confidence: ${confidence}% | ${riskLevel} RISK`;
+            priorityTag.innerHTML = `<i class="fa-solid fa-flag"></i> ${priority}`;
 
-            evidenceItems.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'evidence-item';
-                div.innerHTML = `
-                    <div class="evidence-head">
-                        <span><i class="fa-solid fa-bug"></i> ${item.category || 'THREAT FACTOR'}</span>
-                        <span style="color: ${item.risk === 'HIGH' || item.risk === 'CRITICAL' ? 'var(--red-glow)' : 'var(--cyan-glow)'}">${item.risk || 'INFO'}</span>
-                    </div>
-                    <div class="evidence-desc">${item.description || item.detail || JSON.stringify(item)}</div>
-                `;
-                evidenceList.appendChild(div);
+            // Risk Score Gauge
+            const riskScore = typeof report.risk_score === 'number' ? report.risk_score : (typeof data.risk_score === 'number' ? data.risk_score : 0.0);
+            const scoreNumEl = document.getElementById('risk-score-num');
+            scoreNumEl.innerText = riskScore.toFixed(1);
+
+            const tierBadge = document.getElementById('risk-tier-badge');
+            tierBadge.innerText = `${riskLevel} RISK LEVEL`;
+            if (riskLevel === 'CRITICAL' || riskScore >= 50) {
+                scoreNumEl.style.color = 'var(--red-glow)';
+                tierBadge.style.color = 'var(--red-glow)';
+                tierBadge.style.borderColor = 'var(--red-glow)';
+                tierBadge.style.background = 'var(--red-dim)';
+            } else if (riskLevel === 'HIGH' || riskScore >= 25) {
+                scoreNumEl.style.color = 'var(--amber-glow)';
+                tierBadge.style.color = 'var(--amber-glow)';
+                tierBadge.style.borderColor = 'var(--amber-glow)';
+                tierBadge.style.background = 'var(--amber-dim)';
+            } else {
+                scoreNumEl.style.color = 'var(--green-glow)';
+                tierBadge.style.color = 'var(--green-glow)';
+                tierBadge.style.borderColor = 'var(--green-glow)';
+                tierBadge.style.background = 'var(--green-dim)';
+            }
+
+            // Score Breakdown
+            const breakdownList = document.getElementById('score-breakdown-list');
+            breakdownList.innerHTML = '';
+            const breakdownItems = report.score_breakdown || [];
+            document.getElementById('factor-count-tag').innerText = `${breakdownItems.length} FACTOR${breakdownItems.length === 1 ? '' : 'S'}`;
+
+            if (breakdownItems.length === 0) {
+                breakdownList.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; font-family: var(--font-code); padding: 8px;">No adverse factor points contributed to this investigation.</div>';
+            } else {
+                breakdownItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'factor-item';
+                    div.innerHTML = `
+                        <div class="factor-head">
+                            <span class="factor-name"><i class="fa-solid fa-shield-halved"></i> ${escapeHtml(item.factor)} (Weight: ${item.weight || '18.0'})</span>
+                            <span class="factor-pts">+${typeof item.points === 'number' ? item.points.toFixed(1) : item.points} PTS</span>
+                        </div>
+                        <div class="factor-reason">${escapeHtml(item.reason || '')}</div>
+                        ${item.evidence_id ? `<div style="font-family: var(--font-code); font-size: 11px; color: var(--text-muted);">Ref: <code>${escapeHtml(item.evidence_id)}</code></div>` : ''}
+                    `;
+                    breakdownList.appendChild(div);
+                });
+            }
+
+            // MITRE ATT&CK Mappings
+            const mitreContainer = document.getElementById('mitre-list');
+            mitreContainer.innerHTML = '';
+            const mitreMappings = report.mitre_attack_mapping || [];
+            if (mitreMappings.length === 0) {
+                mitreContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; font-family: var(--font-code);">No MITRE ATT&CK adversarial techniques mapped.</div>';
+            } else {
+                mitreMappings.forEach(m => {
+                    const chip = document.createElement('div');
+                    chip.className = 'mitre-chip';
+                    chip.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>${escapeHtml(m.id)}</strong>: ${escapeHtml(m.name)} (${escapeHtml(m.tactic || 'Technique')})`;
+                    mitreContainer.appendChild(chip);
+                });
+            }
+
+            // IoCs
+            const iocsContainer = document.getElementById('iocs-list');
+            iocsContainer.innerHTML = '';
+            const iocs = report.indicators_of_compromise || {};
+            let iocCount = 0;
+
+            ['urls', 'emails', 'domains', 'ips', 'hashes'].forEach(type => {
+                const list = iocs[type] || [];
+                list.forEach(val => {
+                    iocCount++;
+                    const chip = document.createElement('div');
+                    chip.className = 'ioc-chip';
+                    chip.innerHTML = `<strong>${type.toUpperCase().slice(0, -1)}:</strong> ${escapeHtml(val)}`;
+                    iocsContainer.appendChild(chip);
+                });
             });
+
+            if (iocCount === 0) {
+                iocsContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; font-family: var(--font-code);">No suspicious Indicators of Compromise (IoCs) extracted.</div>';
+            }
+
+            // Analyst Notes & Executive Summary
+            const notesBox = document.getElementById('analyst-notes-content');
+            let notesText = '';
+            if (report.executive_summary) {
+                notesText += "[EXECUTIVE SUMMARY]\\n" + report.executive_summary + "\\n\\n";
+            }
+            if (report.analyst_notes && Array.isArray(report.analyst_notes)) {
+                notesText += "[SOC INVESTIGATION NOTES]\\n" + report.analyst_notes.join("\\n");
+            } else if (typeof report.analyst_notes === 'string') {
+                notesText += report.analyst_notes;
+            }
+            notesBox.innerText = notesText || "Automated multi-step investigation completed.";
+
+            // Evidence Collection Explorer
+            const evidenceContainer = document.getElementById('evidence-list');
+            evidenceContainer.innerHTML = '';
+            const evidences = data.evidence || [];
+            document.getElementById('evidence-count-tag').innerText = `${evidences.length} ITEM${evidences.length === 1 ? '' : 'S'}`;
+
+            if (evidences.length === 0) {
+                evidenceContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; font-family: var(--font-code); padding: 8px;">No evidence records collected.</div>';
+            } else {
+                evidences.forEach(ev => {
+                    const sev = (ev.severity || 'INFO').toUpperCase();
+                    const color = (sev === 'CRITICAL' || sev === 'HIGH') ? 'var(--red-glow)' : (sev === 'MEDIUM' ? 'var(--amber-glow)' : 'var(--cyan-glow)');
+                    const div = document.createElement('div');
+                    div.className = 'evidence-item';
+                    div.innerHTML = `
+                        <div class="evidence-head">
+                            <span style="color: var(--cyan-glow); font-weight: 600;"><i class="fa-solid fa-crosshairs"></i> ${escapeHtml(ev.title || ev.category || 'EVIDENCE')}</span>
+                            <span style="color: ${color}; font-weight: 700;">${sev}</span>
+                        </div>
+                        <div class="evidence-desc">${escapeHtml(ev.description || '')}</div>
+                        <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+                            <span>Source: <code>${escapeHtml(ev.source || 'agent')}</code></span>
+                            <span>ID: <code>${escapeHtml(ev.evidence_id || '')}</code></span>
+                        </div>
+                    `;
+                    evidenceContainer.appendChild(div);
+                });
+            }
 
             document.getElementById('json-raw-view').innerText = JSON.stringify(data, null, 2);
         }
@@ -1631,24 +1993,24 @@ def render_cyber_ui_html() -> str:
                 });
 
                 if (!res.ok) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--red-glow);">Failed to load history</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--red-glow);">History unavailable</td></tr>';
                     return;
                 }
 
                 const data = await res.json();
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No investigation records found.</td></tr>';
+                if (!Array.isArray(data) || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No investigation records found in current session.</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = data.map(item => `
                     <tr>
-                        <td><code>${item.id}</code></td>
-                        <td>${escapeHtml(item.sender)}</td>
-                        <td>${escapeHtml(item.subject)}</td>
-                        <td><span style="color: ${item.verdict === 'MALICIOUS' ? 'var(--red-glow)' : 'var(--green-glow)'}">${item.verdict}</span></td>
-                        <td>${item.risk_level}</td>
-                        <td>${item.duration_ms} ms</td>
+                        <td><code>${escapeHtml(item.id || item.investigation_id || 'N/A')}</code></td>
+                        <td>${escapeHtml(item.sender || 'N/A')}</td>
+                        <td>${escapeHtml(item.subject || 'N/A')}</td>
+                        <td><span style="color: ${item.verdict === 'PHISHING / MALICIOUS' || item.verdict === 'MALICIOUS' ? 'var(--red-glow)' : 'var(--green-glow)'}">${escapeHtml(item.verdict || 'N/A')}</span></td>
+                        <td>${escapeHtml(item.risk_level || 'N/A')}</td>
+                        <td>${typeof item.risk_score === 'number' ? item.risk_score.toFixed(1) : 'N/A'}</td>
                     </tr>
                 `).join('');
             } catch (err) {
@@ -1656,55 +2018,60 @@ def render_cyber_ui_html() -> str:
             }
         }
 
-        // Search Memory
+        // Search Semantic Vector Memory
         async function searchMemory() {
             await ensureAuthToken();
             const query = document.getElementById('memory-search-input').value.trim();
             if (!query) return;
 
             const container = document.getElementById('memory-results');
-            container.innerHTML = '<div style="font-family: var(--font-code); color: var(--text-cyber);">Searching vector index...</div>';
+            container.innerHTML = '<div style="font-family: var(--font-code); color: var(--text-cyber);"><i class="fa-solid fa-spinner fa-spin"></i> Querying pgvector semantic index...</div>';
 
             try {
-                const res = await fetch(`/api/v1/memory/search?q=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': 'Bearer ' + activeAuthToken }
+                const res = await fetch('/api/v1/memory/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + activeAuthToken
+                    },
+                    body: JSON.stringify({ query: query, limit: 5 })
                 });
 
                 if (!res.ok) {
-                    container.innerHTML = '<div style="color: var(--red-glow);">Memory search failed.</div>';
+                    container.innerHTML = '<div style="color: var(--red-glow);">Semantic memory search returned status ' + res.status + '.</div>';
                     return;
                 }
 
                 const data = await res.json();
-                if (data.length === 0) {
-                    container.innerHTML = '<div style="color: var(--text-muted);">No vector memory matches found for query.</div>';
+                const items = data.results || data.items || (Array.isArray(data) ? data : []);
+                if (items.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; font-family: var(--font-code);">No vector memory matches found for query.</div>';
                     return;
                 }
 
-                container.innerHTML = data.map(res => `
-                    <div class="evidence-item">
-                        <div class="evidence-head">
-                            <span><i class="fa-solid fa-brain"></i> SCORE: ${res.score.toFixed(3)}</span>
-                            <span>RECORD ID: ${res.record.id}</span>
+                container.innerHTML = items.map(r => `
+                    <div class="factor-item">
+                        <div class="factor-head">
+                            <span class="factor-name"><i class="fa-solid fa-brain"></i> SIMILARITY: ${typeof r.score === 'number' ? (r.score * 100).toFixed(1) + '%' : (r.similarity ? (r.similarity * 100).toFixed(1) + '%' : 'MATCH')}</span>
+                            <span>ID: <code>${escapeHtml(r.id || (r.record ? r.record.id : 'N/A'))}</code></span>
                         </div>
-                        <div class="evidence-desc">${escapeHtml(res.record.content || JSON.stringify(res.record))}</div>
+                        <div class="factor-reason">${escapeHtml(r.content || r.text || (r.record ? r.record.content : JSON.stringify(r)))}</div>
                     </div>
                 `).join('');
             } catch (err) {
-                container.innerHTML = '<div style="color: var(--red-glow);">Error executing vector query.</div>';
+                container.innerHTML = '<div style="color: var(--red-glow);">Error executing vector query: ' + escapeHtml(err.message) + '</div>';
             }
         }
 
         // Fetch Telemetry
         async function fetchTelemetry() {
+            await checkSystemHealth();
             try {
-                const res = await fetch('/health');
+                const res = await fetch('/metrics');
                 if (res.ok) {
                     const data = await res.json();
-                    document.getElementById('metric-health').innerText = data.status.toUpperCase();
-                    if (data.system) {
-                        document.getElementById('metric-cpu').innerText = (data.system.cpu_percent || 1.4) + '%';
-                        document.getElementById('metric-mem').innerText = (data.system.memory_mb || 128) + ' MB';
+                    if (data.database_connected !== undefined) {
+                        document.getElementById('metric-db').innerText = data.database_connected ? 'CONNECTED' : 'DISCONNECTED';
                     }
                 }
             } catch (err) {
@@ -1714,7 +2081,9 @@ def render_cyber_ui_html() -> str:
 
         // Init page setup
         ensureAuthToken();
+        checkSystemHealth();
         checkGmailStatus();
+        setInterval(checkSystemHealth, 15000);
 
         // Check if redirected from Google OAuth
         const urlParams = new URLSearchParams(window.location.search);
