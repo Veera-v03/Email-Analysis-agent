@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.models.agent import AgentState
-from src.models.evidence import EvidenceSeverity
+from src.models.evidence import Evidence, EvidenceSeverity
 from src.planner.risk_scoring import RiskScoringEngine
 
 HISTORICAL_SIMILARITY_THRESHOLD = 0.80
@@ -371,6 +371,7 @@ class ReasoningEngine:
 
         has_impersonation = False
         has_social_eng = False
+        synthesized_evidences: list[Evidence] = []
 
         if state.parsed_email:
             brand_service = BrandService()
@@ -379,12 +380,34 @@ class ReasoningEngine:
             brand_res = brand_service.analyze_sender(display_name, sender_email)
             if brand_res.get("impersonation_detected"):
                 has_impersonation = True
+                matched_brand = str(brand_res.get("matched_brand", "Unknown"))
+                reason_detail = str(
+                    brand_res.get("reason", "Brand impersonation detected.")
+                )
+                ev_id = f"ev_brand_{matched_brand.lower().replace(' ', '_')}"
                 correlations.append(
                     {
                         "indicator": "Brand Impersonation Detected",
-                        "evidence_id": f"brand_{brand_res.get('matched_brand')}",
-                        "detail": brand_res.get("reason"),
+                        "evidence_id": ev_id,
+                        "detail": reason_detail,
                     }
+                )
+                synthesized_evidences.append(
+                    Evidence(
+                        evidence_id=ev_id,
+                        evidence_type="brand_impersonation",
+                        category="sender.impersonation",
+                        title=f"Brand Impersonation ({matched_brand})",
+                        description=reason_detail,
+                        severity=(
+                            EvidenceSeverity.CRITICAL
+                            if brand_res.get("confidence", 0.9) >= 0.8
+                            else EvidenceSeverity.HIGH
+                        ),
+                        source="security_intelligence.brand",
+                        confidence=brand_res.get("confidence", 0.9),
+                        metadata={"brand": matched_brand},
+                    )
                 )
 
             behavior_analyzer = BehaviorAnalyzer()
@@ -393,13 +416,34 @@ class ReasoningEngine:
             )
             if behav_res.get("social_engineering_detected"):
                 has_social_eng = True
-                for tactic in behav_res.get("detected_tactics", []):
+                tactics = behav_res.get("detected_tactics", [])
+                risk_indicators = behav_res.get("risk_indicators", [])
+                for tactic in tactics:
+                    ev_id = f"ev_behav_{tactic}"
                     correlations.append(
                         {
                             "indicator": f"Social Engineering ({tactic})",
-                            "evidence_id": f"behav_{tactic}",
-                            "detail": f"Matched risk indicators: {', '.join(behav_res.get('risk_indicators', []))}",
+                            "evidence_id": ev_id,
+                            "detail": f"Matched risk indicators: {', '.join(risk_indicators)}",
                         }
+                    )
+                    tactic_sev = (
+                        EvidenceSeverity.CRITICAL
+                        if tactic in {"credential_harvesting", "urgency_manipulation"}
+                        else EvidenceSeverity.HIGH
+                    )
+                    synthesized_evidences.append(
+                        Evidence(
+                            evidence_id=ev_id,
+                            evidence_type=f"social_engineering.{tactic}",
+                            category="behavior.social_engineering",
+                            title=f"Social Engineering ({tactic.replace('_', ' ').title()})",
+                            description=f"Behavioral threat detection matched risk indicators: {', '.join(risk_indicators)}",
+                            severity=tactic_sev,
+                            source="security_intelligence.behavior",
+                            confidence=0.85,
+                            metadata={"tactic": tactic, "indicators": risk_indicators},
+                        )
                     )
 
         historical_context = self._historical_context(state, retriever)
@@ -534,7 +578,8 @@ class ReasoningEngine:
             analyst_notes_lines.append(f"- {corr['indicator']}: {corr['detail']}")
 
         analyst_notes = "\n".join(analyst_notes_lines)
-        weighted_score = self._risk_scoring.score(evidences)
+        all_scoring_evidences = tuple(evidences) + tuple(synthesized_evidences)
+        weighted_score = self._risk_scoring.score(all_scoring_evidences)
 
         return ReasoningOutput(
             summary=summary,

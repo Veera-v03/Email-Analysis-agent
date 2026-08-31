@@ -10,6 +10,8 @@ from src.models.evidence import Evidence, EvidenceSeverity
 DEFAULT_WEIGHTS: dict[str, float] = {
     "authentication": 20.0,
     "url": 18.0,
+    "impersonation": 18.0,
+    "social_engineering": 18.0,
     "attachment": 15.0,
     "threat_intelligence": 15.0,
     "campaign": 12.0,
@@ -94,6 +96,10 @@ class RiskScoringEngine:
         category = item.category.casefold()
         if any(token in category for token in ("spf", "dkim", "dmarc", "auth")):
             return "authentication"
+        if "impersonation" in category or "brand" in category:
+            return "impersonation"
+        if "social_engineering" in category or "behavior" in category:
+            return "social_engineering"
         if "threat_intelligence" in category:
             return "threat_intelligence"
         if "campaign" in category:

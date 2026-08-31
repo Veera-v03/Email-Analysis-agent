@@ -38,6 +38,7 @@ class EnterpriseSettings(BaseSettings):
 
     # API Keys & Secrets Mock/Stubs (Central Secrets Abstraction)
     groq_api_key: SecretStr | None = Field(default=None)
+    groq_model: str = Field(default="openai/gpt-oss-20b")
     slack_webhook_url: str | None = Field(default=None)
     teams_webhook_url: str | None = Field(default=None)
 

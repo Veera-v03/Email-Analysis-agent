@@ -17,10 +17,15 @@ dependencies = [
     "pyjwt>=2.10.0",
     "cryptography>=44.0.0",
     "requests>=2.32.0",
+    "httpx>=0.28.0",
     "sqlalchemy>=2.0.38",
     "asyncpg>=0.30.0",
     "alembic>=1.14.1",
     "psycopg[binary]>=3.2.4",
+    "redis>=5.0.0",
+    "pgvector>=0.3.0",
+    "aiosqlite>=0.20.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]

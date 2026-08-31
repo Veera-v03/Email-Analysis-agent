@@ -21,16 +21,24 @@ class GroqProvider(LLMProvider):
     def __init__(
         self,
         api_key: str | None = None,
-        default_model: str = "llama-3.1-8b-instant",
+        default_model: str | None = None,
     ) -> None:
         """Initialize the Groq API client wrapper.
 
         Args:
             api_key: The authorization bearer token.
-            default_model: The fallback model name to use.
+            default_model: The model name to use (defaults to GROQ_MODEL in configuration or 'openai/gpt-oss-20b').
         """
         self._api_key = api_key
-        self._default_model = default_model
+        if default_model is not None:
+            self._default_model = default_model
+        else:
+            from src.config.enterprise_config import settings
+
+            self._default_model = (
+                settings.get_secret("GROQ_MODEL")
+                or getattr(settings, "groq_model", "openai/gpt-oss-20b")
+            )
         self._endpoint = "https://api.groq.com/openai/v1/chat/completions"
 
     def generate(

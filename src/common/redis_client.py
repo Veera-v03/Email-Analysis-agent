@@ -357,9 +357,14 @@ class AsyncRedisClient:
             raise
 
     async def ping(self) -> bool:
+        """Perform active Redis PING, returning True only when connected to real Redis server."""
+        if self._is_degraded:
+            return False
         try:
             conn = await self._get_conn()
-            return bool(await conn.ping())
+            if self._is_degraded or conn is self._fallback_client:
+                return False
+            return bool(await asyncio.wait_for(conn.ping(), timeout=self.timeout_sec))
         except Exception:
             return False
 

@@ -254,12 +254,42 @@ class SubmissionRequest(BaseModel):
 # 1. Health & Observability Metrics
 @app.get("/health", tags=["System"])
 def health_check() -> dict[str, Any]:
-    """Liveness & readiness health check report."""
+    """Liveness health check report."""
     metrics = get_system_metrics()
     return {
         "status": "healthy",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "system": metrics,
+    }
+
+
+@app.get("/ready", tags=["System"])
+async def readiness_check() -> dict[str, Any]:
+    """Readiness health check report verifying operational backend dependencies."""
+    from src.common.redis_client import get_redis_client
+    from src.memory.storage.pgvector_store import PgVectorStore
+
+    redis_cli = get_redis_client()
+    redis_is_connected = False
+    try:
+        if hasattr(redis_cli, "ping"):
+            redis_is_connected = await redis_cli.ping()
+    except Exception:
+        redis_is_connected = False
+
+    redis_status = "connected" if redis_is_connected else "degraded_in_memory"
+
+    pg_store = PgVectorStore()
+    pg_status = "connected" if not pg_store.is_degraded else "degraded_fallback"
+
+    return {
+        "status": "ready",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "checks": {
+            "database": "connected",
+            "redis": redis_status,
+            "pgvector": pg_status,
+        },
     }
 
 
@@ -452,7 +482,13 @@ def run_investigation(
     # Wire up LLM provider and prompt provider
     planner_conf = get_settings()
     api_key = settings.get_secret("GROQ_API_KEY")
-    model = settings.get_secret("PLANNER_MODEL") or planner_conf.planner_model
+    model = (
+        settings.get_secret("GROQ_MODEL")
+        or getattr(settings, "groq_model", None)
+        or settings.get_secret("PLANNER_MODEL")
+        or getattr(planner_conf, "planner_model", None)
+        or "openai/gpt-oss-20b"
+    )
 
     if not api_key:
         raise APIException(

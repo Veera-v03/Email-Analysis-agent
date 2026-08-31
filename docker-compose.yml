@@ -1,0 +1,93 @@
+# ==============================================================================
+# ScamON Enterprise Email Analysis Agent - Staging Multi-Container Stack
+# ==============================================================================
+
+services:
+  # 1. PostgreSQL 16 with pgvector Extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: scamon-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: scamon
+      POSTGRES_USER: scamon_user
+      POSTGRES_PASSWORD: scamon_staging_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/init-pgvector.sql:/docker-entrypoint-initdb.d/01-init-pgvector.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scamon_user -d scamon"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - scamon-net
+
+  # 2. Redis 7.2 Cache, Lock & Deduplication Engine
+  redis:
+    image: redis:7.2-alpine
+    container_name: scamon-redis
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - redisdata:/data
+      - ./deploy/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - scamon-net
+
+  # 3. ScamON FastAPI Application Daemon
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scamon-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: staging
+      LOG_LEVEL: INFO
+      SECRET_KEY: staging-super-secret-key-32-chars-long!
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+      REDIS_URL: redis://redis:6379/0
+      PGVECTOR_ENABLED: "true"
+      PGVECTOR_URL: postgresql://scamon_user:scamon_staging_password@postgres:5432/scamon
+      EMBEDDING_ENABLED: "false"
+      RAG_ENABLED: "true"
+      REMEDIATION_DRY_RUN: "true"
+      THREAT_INTEL_CIRCUIT_BREAKER_ENABLED: "true"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - scamon-net
+
+networks:
+  scamon-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local

@@ -224,7 +224,9 @@ class PlannerService(Planner):
 
             metadata = PlannerMetadata(
                 provider="groq",
-                model=response.metadata.get("model", "llama-3.1-8b-instant"),
+                model=response.metadata.get(
+                    "model", getattr(self.provider, "_default_model", "openai/gpt-oss-20b")
+                ),
                 latency_ms=latency_ms,
                 timestamp=datetime.now(UTC).isoformat(),
                 additional_metadata=response.metadata,
