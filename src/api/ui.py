@@ -1684,17 +1684,18 @@ def render_cyber_ui_html() -> str:
                 }
 
                 const data = await res.json();
-                if (!data.connected || !data.messages || data.messages.length === 0) {
+                const messages = Array.isArray(data) ? data : (data.messages || []);
+                if (messages.length === 0) {
                     loading.style.display = 'none';
                     notConnected.style.display = 'flex';
                     return;
                 }
 
-                fetchedGmailMessages = data.messages;
+                fetchedGmailMessages = messages;
                 loading.style.display = 'none';
                 msgList.style.display = 'grid';
 
-                msgList.innerHTML = data.messages.map((msg, index) => `
+                msgList.innerHTML = messages.map((msg, index) => `
                     <div class="gmail-card">
                         <div class="gmail-card-header">
                             <span class="gmail-sender"><i class="fa-solid fa-user-ninja"></i> ${escapeHtml(msg.sender)}</span>

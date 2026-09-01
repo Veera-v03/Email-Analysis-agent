@@ -71,6 +71,9 @@ services:
       RAG_ENABLED: "true"
       REMEDIATION_DRY_RUN: "true"
       THREAT_INTEL_CIRCUIT_BREAKER_ENABLED: "true"
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+      - ./token.json:/app/token.json
     ports:
       - "8000:8000"
     healthcheck:

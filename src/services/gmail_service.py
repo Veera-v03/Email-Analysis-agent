@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import urllib.parse
 from pathlib import Path
 from typing import Any, cast
@@ -14,10 +15,34 @@ from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-CREDENTIALS_FILE = Path("credentials.json")
-TOKEN_FILE = Path("token.json")
+DEFAULT_CREDENTIALS_FILE = Path("credentials.json")
+DEFAULT_TOKEN_FILE = Path("token.json")
 
 GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly"
+
+
+def resolve_credentials_path(custom_path: Path | str | None = None) -> Path:
+    """Resolve credentials file path from parameter, env var, or fallback locations."""
+    if custom_path:
+        return Path(custom_path)
+    env_path = os.getenv("GMAIL_CREDENTIALS_PATH")
+    if env_path:
+        return Path(env_path)
+    if Path("data/credentials.json").exists():
+        return Path("data/credentials.json")
+    return DEFAULT_CREDENTIALS_FILE
+
+
+def resolve_token_path(custom_path: Path | str | None = None) -> Path:
+    """Resolve token file path from parameter, env var, or fallback locations."""
+    if custom_path:
+        return Path(custom_path)
+    env_path = os.getenv("GMAIL_TOKEN_PATH")
+    if env_path:
+        return Path(env_path)
+    if Path("data/token.json").exists():
+        return Path("data/token.json")
+    return DEFAULT_TOKEN_FILE
 
 
 class GmailService:
@@ -25,11 +50,37 @@ class GmailService:
 
     def __init__(
         self,
-        credentials_path: Path | str = CREDENTIALS_FILE,
-        token_path: Path | str = TOKEN_FILE,
+        credentials_path: Path | str | None = None,
+        token_path: Path | str | None = None,
     ) -> None:
-        self.credentials_path = Path(credentials_path)
-        self.token_path = Path(token_path)
+        self._credentials_path = Path(credentials_path) if credentials_path else None
+        self._token_path = Path(token_path) if token_path else None
+
+    @property
+    def credentials_path(self) -> Path:
+        """Dynamically resolve Google OAuth credentials file path."""
+        return resolve_credentials_path(self._credentials_path)
+
+    @credentials_path.setter
+    def credentials_path(self, path: Path | str | None) -> None:
+        self._credentials_path = Path(path) if path else None
+
+    @credentials_path.deleter
+    def credentials_path(self) -> None:
+        self._credentials_path = None
+
+    @property
+    def token_path(self) -> Path:
+        """Dynamically resolve Google OAuth token file path."""
+        return resolve_token_path(self._token_path)
+
+    @token_path.setter
+    def token_path(self, path: Path | str | None) -> None:
+        self._token_path = Path(path) if path else None
+
+    @token_path.deleter
+    def token_path(self) -> None:
+        self._token_path = None
 
     def load_client_config(self) -> dict[str, Any]:
         """Load client credentials from credentials.json."""
