@@ -27,6 +27,7 @@ from src.feedback.service import (
     FeedbackDuplicateError,
     IncidentNotFoundError,
     UnauthorizedFeedbackError,
+    to_canonical_uuid,
 )
 from src.feedback.tuner import (
     AdaptiveSensitivityTuner,
@@ -94,7 +95,7 @@ async def get_current_analyst(
         )
 
     try:
-        tenant_id = UUID(str(raw_tenant))
+        tenant_id = to_canonical_uuid(raw_tenant)
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

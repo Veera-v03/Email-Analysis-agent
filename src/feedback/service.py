@@ -49,6 +49,24 @@ class UnauthorizedFeedbackError(FeedbackServiceError):
 # ===========================================================================
 # Storage & Incident Provider Protocols
 # ===========================================================================
+NAMESPACE_SCAMON = UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+
+
+def to_canonical_uuid(val: str | UUID | None) -> UUID:
+    """Transform string or UUID to canonical RFC 4122 UUID deterministically using NAMESPACE_SCAMON."""
+    if val is None:
+        return UUID("00000000-0000-0000-0000-000000000000")
+    if isinstance(val, UUID):
+        return val
+    val_str = str(val).strip()
+    try:
+        return UUID(val_str)
+    except ValueError:
+        from uuid import uuid5
+
+        return uuid5(NAMESPACE_SCAMON, val_str)
+
+
 @runtime_checkable
 class IFeedbackStorage(Protocol):
     """Protocol for persisting and retrieving immutable feedback audit records."""
@@ -84,14 +102,81 @@ class IIncidentProvider(Protocol):
 
 
 # ===========================================================================
-# In-Memory Reference Implementations
+# Reference & Production Incident Provider Implementations
 # ===========================================================================
+class RealIncidentRecord:
+    """Read-only incident record retrieved from InvestigationMetadataRepository."""
+
+    def __init__(self, data: dict[str, Any], t_uuid: UUID, inc_uuid: UUID) -> None:
+        self.id = inc_uuid
+        self.incident_id = inc_uuid
+        self.investigation_id = data.get("id")
+        self.tenant_id = t_uuid
+        self.org_id = data.get("org_id")
+        self.sender = data.get("sender")
+        self.subject = data.get("subject")
+        self.verdict = data.get("verdict")
+        self.risk_level = data.get("risk_level")
+        self.confidence = data.get("confidence", 0.9)
+        risk_lvl = str(data.get("risk_level") or "LOW").upper()
+        self.risk_score = (
+            80 if risk_lvl == "CRITICAL" else (60 if risk_lvl == "HIGH" else (30 if risk_lvl == "MEDIUM" else 5))
+        )
+        self.created_at = data.get("created_at")
+        self.duration_ms = data.get("duration_ms")
+        self.message_id = data.get("email_id") or f"msg_{data.get('id')}"
+
+
+class DatabaseIncidentProvider(IIncidentProvider):
+    """Production database-backed incident provider querying InvestigationMetadataRepository."""
+
+    def __init__(self, repository: Any | None = None) -> None:
+        if repository is not None:
+            self.repository = repository
+        else:
+            from src.database.legacy_repositories import InvestigationMetadataRepository
+
+            self.repository = InvestigationMetadataRepository()
+
+    async def get_incident(self, incident_id: UUID) -> Any | None:
+        raw_uuid_str = str(incident_id)
+
+        # 1. Direct lookup by exact string
+        row = self.repository.get(raw_uuid_str)
+
+        # 2. If not found, scan investigation records to match canonical UUID or hex ID
+        if not row:
+            conn = self.repository._db.get_connection()
+            try:
+                rows = conn.execute(
+                    "SELECT * FROM investigations ORDER BY created_at DESC LIMIT 200;"
+                ).fetchall()
+                for r in rows:
+                    inv_id_str = str(r["id"])
+                    inv_uuid = to_canonical_uuid(inv_id_str)
+                    if inv_uuid == incident_id or inv_id_str == raw_uuid_str:
+                        row = dict(r)
+                        break
+            finally:
+                conn.close()
+
+        if not row:
+            return None
+
+        raw_org = str(row.get("org_id") or "default_tenant")
+        tenant_uuid = to_canonical_uuid(raw_org)
+
+        return RealIncidentRecord(row, tenant_uuid, incident_id)
+
+
 class InMemoryFeedbackStorage(IFeedbackStorage):
     """Thread-safe, tenant-isolated in-memory storage for feedback audit records."""
 
+    _shared_records: list[AnalystFeedbackRecordDTO] = []
+    _lock = asyncio.Lock()
+
     def __init__(self) -> None:
-        self._records: list[AnalystFeedbackRecordDTO] = []
-        self._lock = asyncio.Lock()
+        self._records = self._shared_records
 
     async def save_record(self, record: AnalystFeedbackRecordDTO) -> None:
         async with self._lock:
@@ -165,7 +250,7 @@ class AnalystFeedbackService:
         calibrator: RiskScoreCalibrator | None = None,
     ) -> None:
         self.storage = storage or InMemoryFeedbackStorage()
-        self.incident_provider = incident_provider or InMemoryIncidentProvider()
+        self.incident_provider = incident_provider or DatabaseIncidentProvider()
         self.event_publisher = event_publisher
         self.calibrator = calibrator or RiskScoreCalibrator()
 

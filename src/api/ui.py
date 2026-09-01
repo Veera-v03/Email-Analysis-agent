@@ -1286,6 +1286,14 @@ def render_cyber_ui_html() -> str:
                                 <span><i class="fa-solid fa-user-shield"></i> ANALYST NOTES & REASONING SUMMARY</span>
                             </label>
                             <div id="analyst-notes-content" class="notes-box"></div>
+                            <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+                                <button id="btn-submit-feedback" class="hud-btn" style="background: rgba(0, 243, 255, 0.15); border-color: var(--cyan-glow); color: var(--cyan-glow);" onclick="openFeedbackFromCurrentScan()">
+                                    <i class="fa-solid fa-comments"></i> SUBMIT ANALYST FEEDBACK / DISPUTE VERDICT
+                                </button>
+                                <span id="scan-feedback-badge" style="display: none; font-family: var(--font-code); font-size: 11px; color: var(--green-glow); background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); padding: 4px 8px; border-radius: 4px;">
+                                    <i class="fa-solid fa-check-circle"></i> FEEDBACK SUBMITTED & CONVERGENCE QUEUED
+                                </span>
+                            </div>
                         </div>
 
                         <!-- Evidence Collection Explorer -->
@@ -1534,13 +1542,112 @@ def render_cyber_ui_html() -> str:
                     </div>
                 </div>
 
+                <!-- Prior Feedback History within Incident Modal -->
+                <div id="inc-modal-feedback-section" style="border-top: 1px solid var(--border-cyber); padding-top: 10px; margin-top: 4px;">
+                    <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> ANALYST VERDICT CORRECTION AUDIT
+                    </div>
+                    <div id="inc-modal-feedback-history" style="font-family: var(--font-code); font-size: 11.5px; color: #cbd5e1; max-height: 90px; overflow-y: auto;">
+                        <span style="color: var(--text-muted);">No prior feedback recorded for this incident.</span>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button class="hud-btn" style="background: rgba(0, 243, 255, 0.15); border-color: var(--cyan-glow); color: var(--cyan-glow);" onclick="openFeedbackFromModal()">
+                        <i class="fa-solid fa-comments"></i> SUBMIT FEEDBACK
+                    </button>
                     <button id="inc-modal-reanalyze-btn" class="hud-btn hud-btn-danger" onclick="reanalyzeFromModal()">
                         <i class="fa-solid fa-bolt"></i> LOAD INTO SCANNER
                     </button>
                     <button class="hud-btn" onclick="closeIncidentModal()">CLOSE</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Analyst Feedback Modal -->
+    <div id="feedback-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 600px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-cyber); padding-bottom: 12px; margin-bottom: 16px;">
+                <div style="font-family: var(--font-head); font-size: 16px; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-comments" style="color: var(--cyan-glow);"></i> SUBMIT SOC ANALYST FEEDBACK
+                </div>
+                <button class="hud-btn" style="padding: 4px 8px;" onclick="closeFeedbackModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="feedback-form" onsubmit="submitFeedbackForm(event)" style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">INCIDENT ID</div>
+                        <div id="fb-incident-id-display" style="font-family: var(--font-code); font-size: 12px; color: var(--cyan-glow); font-weight: 700; word-break: break-all; margin-top: 4px;"></div>
+                        <input type="hidden" id="fb-incident-id" name="incident_id" />
+                        <input type="hidden" id="fb-message-id" name="message_id" />
+                    </div>
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">ORIGINAL SYSTEM VERDICT</div>
+                        <div id="fb-original-verdict" style="font-family: var(--font-head); font-size: 13px; font-weight: 700; color: #fff; margin-top: 4px;"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fb-corrected-verdict">
+                        <span><i class="fa-solid fa-gavel"></i> CORRECTED ANALYST VERDICT</span>
+                    </label>
+                    <select id="fb-corrected-verdict" class="cyber-input" required style="font-family: var(--font-code); font-size: 12.5px; background: rgba(3,7,18,0.9); color: #fff;">
+                        <option value="FALSE_POSITIVE">FALSE_POSITIVE (Legitimate email falsely flagged)</option>
+                        <option value="FALSE_NEGATIVE">FALSE_NEGATIVE (Malicious email missed by scanner)</option>
+                        <option value="CONFIRMED_MALICIOUS">CONFIRMED_MALICIOUS (Verified phishing / exploit threat)</option>
+                        <option value="CONFIRMED_SUSPICIOUS">CONFIRMED_SUSPICIOUS (Suspicious indicators confirmed)</option>
+                        <option value="CONFIRMED_CLEAN">CONFIRMED_CLEAN (Safe / benign communication)</option>
+                        <option value="BENIGN_ANOMALY">BENIGN_ANOMALY (Technical anomaly but non-malicious)</option>
+                        <option value="NEEDS_ESCALATION">NEEDS_ESCALATION (Escalate to Tier 3 SOC)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fb-reason-category">
+                        <span><i class="fa-solid fa-list"></i> REASON CATEGORY</span>
+                    </label>
+                    <select id="fb-reason-category" class="cyber-input" required style="font-family: var(--font-code); font-size: 12.5px; background: rgba(3,7,18,0.9); color: #fff;">
+                        <option value="AUTHORIZED_EXTERNAL_VENDOR">AUTHORIZED_EXTERNAL_VENDOR</option>
+                        <option value="INTERNAL_COMMUNICATION">INTERNAL_COMMUNICATION</option>
+                        <option value="LEGITIMATE_MARKETING">LEGITIMATE_MARKETING</option>
+                        <option value="MISCONFIGURED_SPF_DKIM">MISCONFIGURED_SPF_DKIM</option>
+                        <option value="FALSE_POSITIVE_KEYWORD">FALSE_POSITIVE_KEYWORD</option>
+                        <option value="OBFUSCATED_MALICIOUS_LINK">OBFUSCATED_MALICIOUS_LINK</option>
+                        <option value="QR_CODE_CREDENTIAL_PHISH">QR_CODE_CREDENTIAL_PHISH</option>
+                        <option value="VIP_IMPERSONATION">VIP_IMPERSONATION</option>
+                        <option value="OTHER">OTHER</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fb-analyst-notes">
+                        <span><i class="fa-solid fa-pen-to-square"></i> ANALYST JUSTIFICATION NOTES</span>
+                    </label>
+                    <textarea id="fb-analyst-notes" class="cyber-textarea" rows="3" maxlength="2000" placeholder="Provide detailed rationale for verdict correction..." style="font-size: 12.5px;"></textarea>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px 14px; border-radius: 6px;">
+                    <div>
+                        <div style="font-size: 12px; font-weight: 600; color: #fff;">Override Remediation Action</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Dispatch automatic release or rollback remediation if enabled</div>
+                    </div>
+                    <label style="display: flex; align-items: center; cursor: pointer; gap: 6px;">
+                        <input type="checkbox" id="fb-override-remediation" style="accent-color: var(--cyan-glow); width: 16px; height: 16px;" />
+                        <span style="font-family: var(--font-code); font-size: 11px; color: var(--cyan-glow);">OVERRIDE</span>
+                    </label>
+                </div>
+
+                <div id="fb-feedback-msg" style="display: none; font-family: var(--font-code); font-size: 12px; padding: 10px; border-radius: 4px;"></div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px;">
+                    <button type="button" class="hud-btn" onclick="closeFeedbackModal()">CANCEL</button>
+                    <button type="submit" id="fb-submit-btn" class="hud-btn" style="background: rgba(0, 243, 255, 0.2); border-color: var(--cyan-glow); color: var(--cyan-glow);">
+                        <i class="fa-solid fa-paper-plane"></i> SUBMIT FEEDBACK
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1922,6 +2029,10 @@ def render_cyber_ui_html() -> str:
             confidenceTag.innerHTML = `<i class="fa-solid fa-bullseye"></i> Confidence: ${confidence}% | ${riskLevel} RISK`;
             priorityTag.innerHTML = `<i class="fa-solid fa-flag"></i> ${priority}`;
 
+            currentScanResult = data;
+            const fbBadge = document.getElementById('scan-feedback-badge');
+            if (fbBadge) fbBadge.style.display = 'none';
+
             // Risk Score Gauge
             const riskScore = typeof report.risk_score === 'number' ? report.risk_score : (typeof data.risk_score === 'number' ? data.risk_score : 0.0);
             const scoreNumEl = document.getElementById('risk-score-num');
@@ -2056,7 +2167,186 @@ def render_cyber_ui_html() -> str:
             pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
         }
 
+        let currentScanResult = null;
         let currentModalIncident = null;
+
+        function toValidUUID(strId) {
+            if (!strId) strId = 'inc_' + Date.now();
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (uuidRegex.test(strId)) return strId;
+            let hex = '';
+            for (let i = 0; i < strId.length; i++) {
+                hex += strId.charCodeAt(i).toString(16);
+            }
+            while (hex.length < 32) hex += '0';
+            hex = hex.slice(0, 32);
+            return `${hex.slice(0,8)}-${hex.slice(8,12)}-4${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;
+        }
+
+        function openFeedbackFromCurrentScan() {
+            if (!currentScanResult) return;
+            const incId = currentScanResult.id || currentScanResult.investigation_id || ('inc_' + Date.now());
+            const msgId = currentScanResult.email_id || currentScanResult.message_id || ('msg_' + Date.now());
+            const verdict = currentScanResult.report?.verdict || currentScanResult.verdict || 'SUSPICIOUS';
+            const score = typeof currentScanResult.report?.risk_score === 'number' ? currentScanResult.report.risk_score : currentScanResult.risk_score;
+            openFeedbackModal(incId, msgId, verdict, score);
+        }
+
+        function openFeedbackFromModal() {
+            if (!currentModalIncident) return;
+            const incId = currentModalIncident.id || currentModalIncident.investigation_id || ('inc_' + Date.now());
+            const msgId = currentModalIncident.email_id || ('msg_' + Date.now());
+            const verdict = currentModalIncident.verdict || 'SUSPICIOUS';
+            const score = currentModalIncident.risk_score || 50;
+            openFeedbackModal(incId, msgId, verdict, score);
+        }
+
+        function openFeedbackModal(incId, msgId, verdict, score) {
+            document.getElementById('fb-incident-id-display').innerText = incId;
+            document.getElementById('fb-incident-id').value = toValidUUID(incId);
+            document.getElementById('fb-message-id').value = msgId || ('msg_' + Date.now());
+            document.getElementById('fb-original-verdict').innerText = `${(verdict || 'SUSPICIOUS').toUpperCase()} ${typeof score === 'number' ? `(${score.toFixed(1)} PTS)` : ''}`;
+            document.getElementById('fb-analyst-notes').value = '';
+            document.getElementById('fb-override-remediation').checked = false;
+
+            const msgEl = document.getElementById('fb-feedback-msg');
+            msgEl.style.display = 'none';
+            msgEl.innerHTML = '';
+
+            document.getElementById('feedback-modal').classList.add('active');
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedback-modal').classList.remove('active');
+        }
+
+        async function submitFeedbackForm(event) {
+            event.preventDefault();
+            await ensureAuthToken();
+
+            const submitBtn = document.getElementById('fb-submit-btn');
+            const msgEl = document.getElementById('fb-feedback-msg');
+            const rawIncidentId = document.getElementById('fb-incident-id').value;
+            const incidentId = toValidUUID(rawIncidentId);
+            const messageId = document.getElementById('fb-message-id').value || ('msg_' + Date.now());
+            const correctedVerdict = document.getElementById('fb-corrected-verdict').value;
+            const reasonCategory = document.getElementById('fb-reason-category').value;
+            const analystNotes = document.getElementById('fb-analyst-notes').value.trim();
+            const overrideRemediation = document.getElementById('fb-override-remediation').checked;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SUBMITTING...';
+            msgEl.style.display = 'none';
+
+            const payload = {
+                incident_id: incidentId,
+                message_id: messageId,
+                corrected_verdict: correctedVerdict,
+                reason_category: reasonCategory,
+                analyst_notes: analystNotes,
+                override_remediation: overrideRemediation,
+                evidence_tags: ["analyst_correction"]
+            };
+
+            try {
+                const res = await fetch(`/api/v1/feedback/incidents/${incidentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + activeAuthToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.status === 401) {
+                    await requestNewDemoToken();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> SUBMIT FEEDBACK';
+                    return submitFeedbackForm(event);
+                }
+
+                if (res.status === 202 || res.status === 200 || res.ok) {
+                    const data = await res.json();
+                    msgEl.style.display = 'block';
+                    msgEl.style.background = 'rgba(0, 255, 136, 0.1)';
+                    msgEl.style.border = '1px solid rgba(0, 255, 136, 0.3)';
+                    msgEl.style.color = 'var(--green-glow)';
+                    msgEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>FEEDBACK ACCEPTED:</strong> ID: <code>${escapeHtml(data.feedback_id || 'N/A')}</code> &bull; Queued for convergence.`;
+
+                    const scanBadge = document.getElementById('scan-feedback-badge');
+                    if (scanBadge) {
+                        scanBadge.style.display = 'inline-block';
+                        scanBadge.innerHTML = `<i class="fa-solid fa-check-circle"></i> VERDICT DISPUTED: ${escapeHtml(correctedVerdict)} (${escapeHtml(data.feedback_id ? data.feedback_id.slice(0,8) : 'ACCEPTED')})`;
+                    }
+
+                    setTimeout(() => {
+                        closeFeedbackModal();
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> SUBMIT FEEDBACK';
+                    }, 1400);
+                    return;
+                }
+
+                const errData = await res.json().catch(() => ({}));
+                const errDetail = errData.detail || `Server returned HTTP ${res.status}`;
+                msgEl.style.display = 'block';
+                msgEl.style.background = 'rgba(255, 0, 85, 0.1)';
+                msgEl.style.border = '1px solid rgba(255, 0, 85, 0.3)';
+                msgEl.style.color = 'var(--red-glow)';
+
+                if (res.status === 403) {
+                    msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>PERMISSION DENIED:</strong> Feedback submission not permitted for this account/role.`;
+                } else if (res.status === 409) {
+                    msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>DUPLICATE FEEDBACK:</strong> Feedback already submitted within 5-minute idempotency window.`;
+                } else {
+                    msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>ERROR:</strong> ${escapeHtml(errDetail)}`;
+                }
+            } catch (err) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = 'rgba(255, 0, 85, 0.1)';
+                msgEl.style.border = '1px solid rgba(255, 0, 85, 0.3)';
+                msgEl.style.color = 'var(--red-glow)';
+                msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>NETWORK ERROR:</strong> ${escapeHtml(err.message)}`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> SUBMIT FEEDBACK';
+            }
+        }
+
+        async function loadIncidentFeedbackHistory(id) {
+            const container = document.getElementById('inc-modal-feedback-history');
+            if (!container) return;
+            const incUUID = toValidUUID(id);
+
+            try {
+                const res = await fetch(`/api/v1/feedback/incidents/${incUUID}`, {
+                    headers: { 'Authorization': 'Bearer ' + activeAuthToken }
+                });
+
+                if (res.ok) {
+                    const records = await res.json();
+                    if (Array.isArray(records) && records.length > 0) {
+                        container.innerHTML = records.map(rec => `
+                            <div style="background: rgba(0,243,255,0.05); border-left: 2px solid var(--cyan-glow); padding: 6px 10px; margin-bottom: 4px; border-radius: 3px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 700; color: var(--cyan-glow);">${escapeHtml(rec.corrected_verdict)}</span>
+                                    <span style="font-size: 10.5px; color: var(--text-muted);">${escapeHtml(rec.created_at ? rec.created_at.slice(0, 19).replace('T', ' ') : 'N/A')}</span>
+                                </div>
+                                <div style="color: #cbd5e1; font-size: 11px; margin-top: 2px;">
+                                    <strong>Category:</strong> ${escapeHtml(rec.reason_category || 'N/A')} &bull;
+                                    <strong>Analyst:</strong> ${escapeHtml(rec.analyst_id || 'analyst')} (${escapeHtml(rec.analyst_trust_level || 'ANALYST')})
+                                </div>
+                                ${rec.analyst_notes ? `<div style="color: #94a3b8; font-size: 11px; margin-top: 2px; font-style: italic;">"${escapeHtml(rec.analyst_notes)}"</div>` : ''}
+                            </div>
+                        `).join('');
+                        return;
+                    }
+                }
+                container.innerHTML = '<span style="color: var(--text-muted);">No prior analyst feedback recorded for this incident.</span>';
+            } catch (err) {
+                container.innerHTML = '<span style="color: var(--text-muted);">No prior feedback records available.</span>';
+            }
+        }
 
         async function openIncidentDetailModal(id) {
             await ensureAuthToken();
@@ -2100,6 +2390,8 @@ def render_cyber_ui_html() -> str:
 
                 document.getElementById('inc-modal-duration').innerText = data.duration_ms ? `${data.duration_ms} ms` : 'N/A';
                 document.getElementById('inc-modal-time').innerText = data.created_at || 'N/A';
+
+                loadIncidentFeedbackHistory(id);
 
                 loading.style.display = 'none';
                 content.style.display = 'flex';
