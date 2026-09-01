@@ -1370,12 +1370,13 @@ def render_cyber_ui_html() -> str:
                                 <th>SUBJECT</th>
                                 <th>VERDICT</th>
                                 <th>RISK LEVEL</th>
-                                <th>SCORE</th>
+                                <th>DURATION</th>
+                                <th>ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody id="history-tbody">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading investigation history...</td>
+                                <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading investigation history...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1390,10 +1391,10 @@ def render_cyber_ui_html() -> str:
                     <div class="card-title">
                         <i class="fa-solid fa-brain"></i> HYBRID THREAT MEMORY SEARCH
                     </div>
-                    <span style="font-family: var(--font-code); font-size: 11px; color: var(--text-cyber);">POST /api/v1/memory/search</span>
+                    <span style="font-family: var(--font-code); font-size: 11px; color: var(--text-cyber);">GET /api/v1/memory/search?q={query}</span>
                 </div>
                 <div style="display: flex; gap: 12px;">
-                    <input type="text" id="memory-search-input" class="form-input" style="flex: 1;" placeholder="Search threat vectors, e.g. 'paypal phishing' or 'credential harvest'...">
+                    <input type="text" id="memory-search-input" class="form-input" style="flex: 1;" placeholder="Search threat vectors, e.g. 'paypal phishing' or 'credential harvest'..." onkeydown="if(event.key==='Enter') searchMemory()">
                     <button class="hud-btn" onclick="searchMemory()">
                         <i class="fa-solid fa-magnifying-glass"></i> SEARCH
                     </button>
@@ -1466,6 +1467,79 @@ def render_cyber_ui_html() -> str:
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button class="hud-btn hud-btn-danger" onclick="requestNewDemoToken()">GENERATE DEMO TOKEN</button>
                 <button class="hud-btn" onclick="saveAuthToken()">SAVE & CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incident Detail Modal -->
+    <div id="incident-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 650px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-cyber); padding-bottom: 12px; margin-bottom: 16px;">
+                <div style="font-family: var(--font-head); font-size: 16px; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-shield-halved" style="color: var(--cyan-glow);"></i> INCIDENT INVESTIGATION RECORD
+                </div>
+                <button class="hud-btn" style="padding: 4px 8px;" onclick="closeIncidentModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="incident-modal-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; gap: 12px;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; color: var(--cyan-glow);"></i>
+                <div style="font-family: var(--font-code); font-size: 12px; color: var(--text-muted);">Fetching incident record from database...</div>
+            </div>
+
+            <div id="incident-modal-content" style="display: none; flex-direction: column; gap: 14px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">INVESTIGATION ID</div>
+                        <div id="inc-modal-id" style="font-family: var(--font-code); font-size: 13px; color: var(--cyan-glow); font-weight: 700; margin-top: 4px;"></div>
+                    </div>
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">ORGANIZATION TENANT</div>
+                        <div id="inc-modal-org" style="font-family: var(--font-code); font-size: 13px; color: #fff; margin-top: 4px;"></div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                    <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">SENDER ADDRESS</div>
+                    <div id="inc-modal-sender" style="font-family: var(--font-code); font-size: 13px; color: #fff; margin-top: 4px;"></div>
+                </div>
+
+                <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                    <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">SUBJECT LINE</div>
+                    <div id="inc-modal-subject" style="font-size: 13px; color: #fff; margin-top: 4px;"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">VERDICT</div>
+                        <div id="inc-modal-verdict" style="font-family: var(--font-head); font-size: 13px; font-weight: 700; margin-top: 4px;"></div>
+                    </div>
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">RISK LEVEL</div>
+                        <div id="inc-modal-risk" style="font-family: var(--font-head); font-size: 13px; font-weight: 700; margin-top: 4px;"></div>
+                    </div>
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">CONFIDENCE</div>
+                        <div id="inc-modal-conf" style="font-family: var(--font-head); font-size: 13px; color: var(--cyan-glow); font-weight: 700; margin-top: 4px;"></div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">DURATION</div>
+                        <div id="inc-modal-duration" style="font-family: var(--font-code); font-size: 12px; color: #fff; margin-top: 4px;"></div>
+                    </div>
+                    <div style="background: rgba(3,7,18,0.6); border: 1px solid var(--border-cyber); padding: 10px; border-radius: 6px;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">RECORDED TIMESTAMP</div>
+                        <div id="inc-modal-time" style="font-family: var(--font-code); font-size: 12px; color: #fff; margin-top: 4px;"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button id="inc-modal-reanalyze-btn" class="hud-btn hud-btn-danger" onclick="reanalyzeFromModal()">
+                        <i class="fa-solid fa-bolt"></i> LOAD INTO SCANNER
+                    </button>
+                    <button class="hud-btn" onclick="closeIncidentModal()">CLOSE</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1982,11 +2056,76 @@ def render_cyber_ui_html() -> str:
             pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
         }
 
+        let currentModalIncident = null;
+
+        async function openIncidentDetailModal(id) {
+            await ensureAuthToken();
+            const modal = document.getElementById('incident-modal');
+            const loading = document.getElementById('incident-modal-loading');
+            const content = document.getElementById('incident-modal-content');
+
+            modal.classList.add('active');
+            loading.style.display = 'flex';
+            content.style.display = 'none';
+
+            try {
+                const res = await fetch(`/api/v1/investigate/${id}`, {
+                    headers: { 'Authorization': 'Bearer ' + activeAuthToken }
+                });
+
+                if (!res.ok) {
+                    loading.innerHTML = `<div style="color: var(--red-glow);">Failed to load record (${res.status})</div>`;
+                    return;
+                }
+
+                const data = await res.json();
+                currentModalIncident = data;
+
+                document.getElementById('inc-modal-id').innerText = data.id || 'N/A';
+                document.getElementById('inc-modal-org').innerText = data.org_id || 'default_tenant';
+                document.getElementById('inc-modal-sender').innerText = data.sender || 'N/A';
+                document.getElementById('inc-modal-subject').innerText = data.subject || 'N/A';
+
+                const verdictEl = document.getElementById('inc-modal-verdict');
+                verdictEl.innerText = (data.verdict || 'UNKNOWN').toUpperCase();
+                const isMal = data.verdict === 'PHISHING / MALICIOUS' || data.verdict === 'MALICIOUS' || data.risk_level === 'CRITICAL' || data.risk_level === 'HIGH' || data.risk_level === 'critical' || data.risk_level === 'high';
+                verdictEl.style.color = isMal ? 'var(--red-glow)' : 'var(--green-glow)';
+
+                const riskEl = document.getElementById('inc-modal-risk');
+                riskEl.innerText = (data.risk_level || 'N/A').toUpperCase();
+                riskEl.style.color = isMal ? 'var(--red-glow)' : 'var(--green-glow)';
+
+                const conf = typeof data.confidence === 'number' ? (data.confidence * 100).toFixed(1) + '%' : 'N/A';
+                document.getElementById('inc-modal-conf').innerText = conf;
+
+                document.getElementById('inc-modal-duration').innerText = data.duration_ms ? `${data.duration_ms} ms` : 'N/A';
+                document.getElementById('inc-modal-time').innerText = data.created_at || 'N/A';
+
+                loading.style.display = 'none';
+                content.style.display = 'flex';
+            } catch (err) {
+                loading.innerHTML = `<div style="color: var(--red-glow);">Error: ${escapeHtml(err.message)}</div>`;
+            }
+        }
+
+        function closeIncidentModal() {
+            document.getElementById('incident-modal').classList.remove('active');
+        }
+
+        function reanalyzeFromModal() {
+            if (!currentModalIncident) return;
+            document.getElementById('input-sender').value = currentModalIncident.sender || '';
+            document.getElementById('input-subject').value = currentModalIncident.subject || '';
+            document.getElementById('input-body').value = currentModalIncident.subject ? `Subject: ${currentModalIncident.subject}\nSender: ${currentModalIncident.sender}` : '';
+            closeIncidentModal();
+            switchTab('scanner');
+        }
+
         // Fetch History
         async function fetchHistory() {
             await ensureAuthToken();
             const tbody = document.getElementById('history-tbody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Fetching incident records...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Fetching incident records...</td></tr>';
 
             try {
                 const res = await fetch('/api/v1/investigate', {
@@ -1994,13 +2133,13 @@ def render_cyber_ui_html() -> str:
                 });
 
                 if (!res.ok) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--red-glow);">History unavailable</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--red-glow);">History unavailable</td></tr>';
                     return;
                 }
 
                 const data = await res.json();
                 if (!Array.isArray(data) || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No investigation records found in current session.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No investigation records found in current session.</td></tr>';
                     return;
                 }
 
@@ -2009,13 +2148,18 @@ def render_cyber_ui_html() -> str:
                         <td><code>${escapeHtml(item.id || item.investigation_id || 'N/A')}</code></td>
                         <td>${escapeHtml(item.sender || 'N/A')}</td>
                         <td>${escapeHtml(item.subject || 'N/A')}</td>
-                        <td><span style="color: ${item.verdict === 'PHISHING / MALICIOUS' || item.verdict === 'MALICIOUS' ? 'var(--red-glow)' : 'var(--green-glow)'}">${escapeHtml(item.verdict || 'N/A')}</span></td>
-                        <td>${escapeHtml(item.risk_level || 'N/A')}</td>
-                        <td>${typeof item.risk_score === 'number' ? item.risk_score.toFixed(1) : 'N/A'}</td>
+                        <td><span style="color: ${item.verdict === 'PHISHING / MALICIOUS' || item.verdict === 'MALICIOUS' || item.risk_level === 'CRITICAL' || item.risk_level === 'HIGH' || item.risk_level === 'critical' || item.risk_level === 'high' ? 'var(--red-glow)' : 'var(--green-glow)'}">${escapeHtml(item.verdict || 'N/A')}</span></td>
+                        <td><span style="font-family: var(--font-code); font-size: 11px;">${escapeHtml(item.risk_level || 'N/A')}</span></td>
+                        <td>${item.duration_ms ? item.duration_ms + ' ms' : 'N/A'}</td>
+                        <td>
+                            <button class="hud-btn" style="font-size: 11px; padding: 4px 10px;" onclick="openIncidentDetailModal('${escapeHtml(item.id || item.investigation_id)}')">
+                                <i class="fa-solid fa-eye"></i> INSPECT
+                            </button>
+                        </td>
                     </tr>
                 `).join('');
             } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Error fetching history</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Error fetching history</td></tr>';
             }
         }
 
@@ -2029,14 +2173,17 @@ def render_cyber_ui_html() -> str:
             container.innerHTML = '<div style="font-family: var(--font-code); color: var(--text-cyber);"><i class="fa-solid fa-spinner fa-spin"></i> Querying pgvector semantic index...</div>';
 
             try {
-                const res = await fetch('/api/v1/memory/search', {
-                    method: 'POST',
+                const res = await fetch(`/api/v1/memory/search?q=${encodeURIComponent(query)}`, {
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + activeAuthToken
-                    },
-                    body: JSON.stringify({ query: query, limit: 5 })
+                    }
                 });
+
+                if (res.status === 401) {
+                    await requestNewDemoToken();
+                    return searchMemory();
+                }
 
                 if (!res.ok) {
                     container.innerHTML = '<div style="color: var(--red-glow);">Semantic memory search returned status ' + res.status + '.</div>';
@@ -2044,21 +2191,44 @@ def render_cyber_ui_html() -> str:
                 }
 
                 const data = await res.json();
-                const items = data.results || data.items || (Array.isArray(data) ? data : []);
+                const items = Array.isArray(data) ? data : (data.results || data.items || []);
                 if (items.length === 0) {
-                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; font-family: var(--font-code);">No vector memory matches found for query.</div>';
+                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; font-family: var(--font-code); padding: 12px 0;">No vector memory matches found for query.</div>';
                     return;
                 }
 
-                container.innerHTML = items.map(r => `
-                    <div class="factor-item">
-                        <div class="factor-head">
-                            <span class="factor-name"><i class="fa-solid fa-brain"></i> SIMILARITY: ${typeof r.score === 'number' ? (r.score * 100).toFixed(1) + '%' : (r.similarity ? (r.similarity * 100).toFixed(1) + '%' : 'MATCH')}</span>
-                            <span>ID: <code>${escapeHtml(r.id || (r.record ? r.record.id : 'N/A'))}</code></span>
+                container.innerHTML = items.map((r, idx) => {
+                    const rec = r.record || {};
+                    const scoreVal = typeof r.similarity_score === 'number' ? (r.similarity_score * 100).toFixed(1) : (typeof r.similarity === 'number' ? (r.similarity * 100).toFixed(1) : (typeof r.score === 'number' ? (r.score * 100).toFixed(1) : 'MATCH'));
+                    const recId = rec.memory_id || r.memory_id || rec.id || r.id || `rec_${idx + 1}`;
+                    const memType = (r.memory_type || rec.memory_type || 'EVIDENCE').toUpperCase();
+                    const title = rec.title || (rec.category ? rec.category.replace(/_/g, ' ').toUpperCase() : '') || (rec.pattern_rules ? (rec.pattern_rules.category || 'THREAT PATTERN').toUpperCase() : 'THREAT MEMORY RECORD');
+                    const desc = rec.description || (rec.pattern_rules ? rec.pattern_rules.detail : '') || rec.content || r.content || r.text || JSON.stringify(rec);
+                    const sev = (rec.severity || (rec.pattern_rules ? rec.pattern_rules.severity : '') || 'INFO').toUpperCase();
+                    const sevColor = (sev === 'CRITICAL' || sev === 'HIGH') ? 'var(--red-glow)' : (sev === 'MEDIUM' ? 'var(--amber-glow)' : 'var(--cyan-glow)');
+
+                    return `
+                    <div class="factor-item" style="border-left: 3px solid var(--cyan-glow); background: rgba(3,7,18,0.7); padding: 14px; border-radius: 6px; margin-bottom: 8px;">
+                        <div class="factor-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span class="factor-name" style="color: var(--cyan-glow); font-weight: 700;">
+                                <i class="fa-solid fa-brain"></i> SIMILARITY: ${scoreVal}% &bull; <span style="font-size: 11px; opacity: 0.8;">${escapeHtml(memType)}</span>
+                            </span>
+                            <span style="font-family: var(--font-code); font-size: 11px; color: var(--text-muted);">
+                                ID: <code>${escapeHtml(recId)}</code>
+                            </span>
                         </div>
-                        <div class="factor-reason">${escapeHtml(r.content || r.text || (r.record ? r.record.content : JSON.stringify(r)))}</div>
-                    </div>
-                `).join('');
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-weight: 600; color: #fff; font-size: 13px;">${escapeHtml(title)}</span>
+                            <span style="font-family: var(--font-code); font-size: 11px; font-weight: 700; color: ${sevColor}; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 3px;">${escapeHtml(sev)}</span>
+                        </div>
+                        <div class="factor-reason" style="color: #cbd5e1; font-size: 12.5px; line-height: 1.5; margin-bottom: 6px;">${escapeHtml(desc)}</div>
+                        <div style="font-family: var(--font-code); font-size: 11px; color: var(--text-muted); display: flex; gap: 14px; flex-wrap: wrap;">
+                            ${rec.source_tool ? `<span>Source: <code>${escapeHtml(rec.source_tool)}</code></span>` : ''}
+                            ${rec.evidence_id ? `<span>Evidence Ref: <code>${escapeHtml(rec.evidence_id)}</code></span>` : ''}
+                            ${rec.created_at ? `<span>Indexed: <code>${escapeHtml(rec.created_at.slice(0, 19).replace('T', ' '))}</code></span>` : ''}
+                        </div>
+                    </div>`;
+                }).join('');
             } catch (err) {
                 container.innerHTML = '<div style="color: var(--red-glow);">Error executing vector query: ' + escapeHtml(err.message) + '</div>';
             }
